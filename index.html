@@ -536,6 +536,8 @@ render();
   function dismissed(){var t=+safe(function(){return localStorage.getItem(DKEY)},0);return t&&Date.now()-t<7*864e5}
   function toastMsg(m){var t=document.getElementById("toast");if(!t)return;t.textContent=m;t.hidden=false;clearTimeout(toastMsg.t);toastMsg.t=setTimeout(function(){t.hidden=true},3200)}
   function busy(){return !!(window.hofApp&&window.hofApp.busy())}
+  function getLS(k){return safe(function(){return localStorage.getItem(k)},null)}
+  function setLS(k,v){safe(function(){localStorage.setItem(k,v)})}
 
   /* ----- ติดตั้งแอป ----- */
   function showAndroid(){
@@ -568,15 +570,19 @@ render();
   H.check=function(){
     if(H.checking)return Promise.resolve();H.checking=true;H.offline=false;emit();
     var jobs=[reg?reg.update().catch(function(){}):0,
-      fetchBuild().then(function(h){if(!H.build)H.build=h;else if(h!==H.build)found()})];
+      fetchBuild().then(function(h){if(!H.build)H.build=h;else if(h!==H.build)found(h)})];
     return Promise.all(jobs).catch(function(){H.offline=true}).then(function(){H.checking=false;H.last=Date.now();emit()});
   };
   H.apply=function(){
+    if(H.pending)setLS("hof-try",H.pending);   // จำรุ่นที่สั่งอัปเดตแล้ว รุ่นเดียวกันจะไม่เด้งซ้ำอีก
     safe(function(){sessionStorage.setItem("hof-applied",Date.now())});
     if(reg&&reg.waiting){reg.waiting.postMessage("SKIP_WAITING");setTimeout(function(){location.reload()},1500)}else location.reload();
   };
-  function found(){
-    if(H.available)return;H.available=true;emit();
+  function found(h){
+    if(H.available)return;
+    if(h&&getLS("hof-try")===h){H.build=h;return}   // รุ่นนี้สั่งอัปเดตไปแล้ว ไม่ต้องเด้งซ้ำ
+    H.pending=h||"";H.available=true;emit();
+    if(h&&getLS("hof-skip")===h)return;             // ผู้ใช้กด ภายหลัง/ยกเลิก รุ่นนี้ไปแล้ว ไม่รบกวนอีก (ยังกดอัปเดตเองได้ใน ตั้งค่า)
     if(document.hidden){
       if(H.notif==="granted")notifyLocal();
       if(H.auto&&!busy()){H.apply();return}
@@ -590,13 +596,13 @@ render();
   function manual(b){
     var d=bar("pwa-update",'<div class="tx"><b>🎉 มีเวอร์ชันใหม่แล้ว</b>'+(b?'คุณกำลังกรอกข้อมูลอยู่ จึงยังไม่อัปเดตให้เอง กดอัปเดตเมื่อบันทึกเสร็จ':'อัปเดตเพื่อรับฟีเจอร์และการแก้ไขล่าสุด ข้อมูลที่บันทึกแล้วจะไม่หาย')+'</div><div class="bt"><button class="btn primary sm" id="pwa-up">อัปเดตเลย</button><button class="btn sm" id="pwa-upl">ภายหลัง</button></div>');
     d.querySelector("#pwa-up").onclick=function(){this.textContent="กำลังอัปเดต…";H.apply()};
-    d.querySelector("#pwa-upl").onclick=function(){hide("pwa-update")};
+    d.querySelector("#pwa-upl").onclick=function(){if(H.pending)setLS("hof-skip",H.pending);hide("pwa-update")};
   }
   function countdown(n){
     var d=bar("pwa-update",'<div class="tx"><b>🎉 มีเวอร์ชันใหม่ กำลังอัปเดตอัตโนมัติ</b>อีก <span id="pwa-n">'+n+'</span> วินาที ข้อมูลที่บันทึกแล้วจะไม่หาย</div><div class="bt"><button class="btn primary sm" id="pwa-up">อัปเดตเลย</button><button class="btn sm" id="pwa-upl">ยกเลิก</button></div>');
     var sp=d.querySelector("#pwa-n");
     d.querySelector("#pwa-up").onclick=function(){clearInterval(timer);this.textContent="กำลังอัปเดต…";H.apply()};
-    d.querySelector("#pwa-upl").onclick=function(){clearInterval(timer);hide("pwa-update")};
+    d.querySelector("#pwa-upl").onclick=function(){clearInterval(timer);if(H.pending)setLS("hof-skip",H.pending);hide("pwa-update")};
     timer=setInterval(function(){
       if(busy()){clearInterval(timer);manual(true);return}
       n--;if(n<=0){clearInterval(timer);H.apply();return}sp.textContent=n;
@@ -622,12 +628,8 @@ render();
     navigator.serviceWorker.register("sw.js").then(function(r){
       reg=r;
       if(H.notif==="granted")regPeriodic();
-      if(r.waiting&&navigator.serviceWorker.controller){
-        var recent=+safe(function(){return sessionStorage.getItem("hof-applied")},0);
-        H.available=true;emit();
-        if(H.auto&&!busy()&&Date.now()-recent>20000)H.apply();else showUpdate();
-      }
-      r.addEventListener("updatefound",function(){var n=r.installing;if(!n)return;n.addEventListener("statechange",function(){if(n.state==="installed"&&navigator.serviceWorker.controller)found()})});
+      // ตัว service worker ใหม่ที่รออยู่ ไม่ใช่เหตุให้แจ้งเตือน (หน้าเว็บใช้ "เน็ตก่อน" อยู่แล้ว) ให้ดูจากไฟล์ index.html ที่เปลี่ยนจริงเท่านั้น
+      r.addEventListener("updatefound",function(){var n=r.installing;if(!n)return;n.addEventListener("statechange",function(){if(n.state==="installed"&&navigator.serviceWorker.controller)setTimeout(function(){H.check()},500)})});
     }).catch(function(){H.ok=false;H.status="ลงทะเบียนระบบอัปเดตไม่สำเร็จ";emit()});
     setTimeout(function(){baseline().then(function(h){H.build=h;emit();return H.check()}).catch(function(){})},1500);
     setInterval(function(){H.check()},15*60*1000);

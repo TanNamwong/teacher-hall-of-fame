@@ -1,7 +1,7 @@
 /* ทำเนียบครูดีเด่น - service worker
    ไฟล์หน้าเว็บใช้แบบ "เน็ตก่อน" (ไม่เน็ตค่อยใช้ของที่เก็บไว้) จึงได้รุ่นใหม่ทันทีที่อัปโหลดขึ้น GitHub
    ไม่ต้องแก้เลขเวอร์ชันเอง (เลขด้านล่างเปลี่ยนเมื่อไหร่ก็ได้ ถ้าอยากล้างแคชรูป/ไอคอนเก่า) */
-const VERSION = "2026.11.12-2";
+const VERSION = "2026.11.12-3";
 const CACHE = "hof-v" + VERSION;
 const SHELL = ["./", "./index.html", "./manifest.json", "./icon.svg", "./icon-192.png", "./icon-512.png", "./icon-maskable-512.png", "./apple-touch-icon.png"];
 const TIMEOUT = 6000;

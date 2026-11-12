@@ -75,6 +75,7 @@ h3{font-size:1rem;color:var(--navy);margin-bottom:8px}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px;box-shadow:var(--shadow)}
 .row{display:flex;gap:12px;flex-wrap:wrap}.row>*{flex:1;min-width:140px}
 .stack{display:flex;flex-direction:column;gap:12px}
+[hidden]{display:none!important}
 label{display:block;font-size:.8rem;font-weight:600;color:var(--muted);margin-bottom:4px}
 input,select,textarea{width:100%;font:inherit;color:var(--fg);background:var(--surface);border:1.5px solid var(--line);border-radius:12px;padding:9px 12px}
 textarea{resize:vertical;min-height:68px}
@@ -229,7 +230,7 @@ function save(){const j=JSON.stringify(S);memStore=j;try{localStorage.setItem(KE
 function toast(m){const t=$("#toast");t.textContent=m;t.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>t.hidden=true,2600)}
 
 let tab=(location.hash||"#hall").slice(1);if(!TABS.some(t=>t[0]===tab))tab="hall";
-const ui={sub:{hall:"now",teachers:"list",rules:"menu"},ec:null,addc:false,tid:null,year:null,cat:null,hq:"",hy:"all",q:"",draft:{},note:""};
+const ui={sub:{hall:"now",teachers:"list",rules:"menu"},ec:null,addc:false,tid:null,year:null,cat:null,hq:"",hy:"all",q:"",draft:{},note:"",pdfYear:"all",pdf:null,pastYear:null,posterYear:null,posterTheme:0,poster:null};
 
 const teacher=id=>S.teachers.find(t=>t.id===id);
 const initials=n=>{const p=n.replace(/^(ครู|อาจารย์|นาย|นางสาว|นาง)\s*/,"").trim();return p?[...p][0]:"?"};
@@ -239,8 +240,9 @@ const kc=c=>"k"+(hash(c)%5);
 function catEmoji(c){if(/นวัตกรรม/.test(c))return"💡";if(/ดูแล|นักเรียน/.test(c))return"🤗";if(/ดาวรุ่ง/.test(c))return"🚀";return["🏅","🌈","🎖️","🌻","🦋"][hash(c)%5]}
 function deptEmoji(d){if(/วิทย์|คณิต/.test(d))return"🔬";if(/ภาษาต่าง|อังกฤษ/.test(d))return"🌏";if(/สังคม|ไทย/.test(d))return"📚";if(/ศิลป|พละ|ดนตรี/.test(d))return"🎨";if(/เทคโน|คอม/.test(d))return"💻";return"🎓"}
 const tag=c=>`<span class="tag ${kc(c)}">${catEmoji(c)} ${esc(c)}</span>`;
-const repeatYears=e=>S.evals.filter(x=>x.tid===e.tid&&x.cat===e.cat&&x.year<e.year&&x.pct>=S.pass).map(x=>x.year).sort();
-const winnersAll=()=>S.evals.filter(e=>e.pct>=S.pass).sort((a,b)=>b.year-a.year||b.pct-a.pct);
+const isWin=e=>!!e.past||e.pct>=S.pass;   // ครูดีเด่น = ผ่านเกณฑ์ หรือเป็นรายการย้อนหลังที่บันทึกเข้าทำเนียบ
+const repeatYears=e=>S.evals.filter(x=>x.tid===e.tid&&x.cat===e.cat&&x.year<e.year&&isWin(x)).map(x=>x.year).sort();
+const winnersAll=()=>S.evals.filter(isWin).sort((a,b)=>b.year-a.year||(b.pct||0)-(a.pct||0));
 const seg=(k,opts)=>`<div class="seg" role="tablist">${opts.map(([v,l])=>`<button role="tab" aria-selected="${ui.sub[k]===v}" data-sub="${k}:${v}">${l}</button>`).join("")}</div>`;
 
 function readPhoto(file){return new Promise((res,rej)=>{
@@ -299,9 +301,9 @@ function calc(){const crit=activeCrit();let s=0,m=0,any=false;
 function updSum(){const {s,m,pct}=calc(),ok=pct>=S.pass;
   $("#sum").innerHTML=`<div><small>คะแนนรวม</small><b>${fmt(s)}/${fmt(m)}</b></div><div><small>ร้อยละ</small><b>${fmt(pct)}%</b><div class="bar"><i style="width:${Math.min(100,pct)}%"></i></div></div><div><small>เกณฑ์ ${fmt(S.pass)}</small><span class="pill ${ok?"ok":"bad"}">${ok?"🎉 ผ่าน":"ยังไม่ผ่าน"}</span></div>`}
 function updDup(){
-  const yr=+ui.year,won=S.evals.filter(e=>e.tid===ui.tid&&e.pct>=S.pass&&e.year!==yr);
+  const yr=+ui.year,won=S.evals.filter(e=>e.tid===ui.tid&&isWin(e)&&e.year!==yr);
   const same=won.filter(e=>e.cat===ui.cat).map(e=>e.year).sort();
-  const thisYear=S.evals.filter(e=>e.tid===ui.tid&&e.pct>=S.pass&&e.year===yr&&e.cat!==ui.cat).map(e=>e.cat);
+  const thisYear=S.evals.filter(e=>e.tid===ui.tid&&isWin(e)&&e.year===yr&&e.cat!==ui.cat).map(e=>e.cat);
   const wonCats=new Set(won.map(e=>e.cat)),fresh=S.categories.filter(c=>!wonCats.has(c)&&c!==ui.cat);
   let h="";
   if(same.length)h+=`<div class="alert"><b class="emo">⚠️ ${same.includes(yr-1)?"ได้ตำแหน่งนี้ติดต่อกันแล้วนะ":"ตำแหน่งซ้ำนะ!"}</b>เคยได้ “${esc(ui.cat)}” ปีการศึกษา ${same.join(", ")} ตำแหน่งควรหมุนเวียนทุกปี ลองพิจารณาหมวดอื่นดู${fresh.length?`<br>💡 หมวดที่ยังไม่เคยได้: <b style="display:inline">${fresh.map(esc).join(", ")}</b>`:""}</div>`;
@@ -311,7 +313,7 @@ function updDup(){
 /* ---------- ทำเนียบ ---------- */
 const MEDAL=["🥇","🥈","🥉"];
 function hofCard(e,rank){const t=teacher(e.tid),rp=repeatYears(e);
-  return `<article class="hof"><div class="ph">${avatar(t)}<span class="badge">${fmt(e.pct)}</span>${rank!=null&&rank<3?`<span class="medal emo">${MEDAL[rank]}</span>`:""}</div>
+  return `<article class="hof"><div class="ph">${avatar(t)}<span class="badge">${e.pct!=null?fmt(e.pct):"📜"}</span>${rank!=null&&rank<3?`<span class="medal emo">${MEDAL[rank]}</span>`:""}</div>
   <div class="bd"><div class="nm">${esc(t?.name||"")}</div><div class="muted small">${deptEmoji(t?.dept||"")} ${esc(t?.dept||"")}</div>${tag(e.cat)}
   <div class="yr">📅 ปี ${e.year}</div>${rp.length?`<div class="rep emo">⚠️ ซ้ำตำแหน่ง ปี ${rp.join(", ")}</div>`:""}</div></article>`}
 function hallRes(){
@@ -319,7 +321,7 @@ function hallRes(){
   const v=winnersAll().filter(e=>{const t=teacher(e.tid);return (ui.hy==="all"||e.year==ui.hy)&&(!q||[t?.name,t?.dept,e.cat,e.year].join(" ").toLowerCase().includes(q))});
   $("#hres").innerHTML=v.length?`<p class="muted small">🔎 พบ ${v.length} รายการ</p><div class="hof-grid">${v.map(e=>hofCard(e)).join("")}</div>`:`<div class="empty"><span class="big emo">🔍</span>ไม่พบครูดีเด่นตามที่ค้นหา ลองคำอื่นดูนะ</div>`}
 function vHall(){
-  const W=winnersAll(),hist=[...S.evals].sort((a,b)=>b.year-a.year||b.pct-a.pct),k=ui.sub.hall,cy=curYear();
+  const W=winnersAll(),hist=[...S.evals].sort((a,b)=>b.year-a.year||(b.pct||0)-(a.pct||0)),k=ui.sub.hall,cy=curYear();
   const years=[...new Set([cy,...W.map(e=>e.year)])].sort((a,b)=>b-a);
   let body="";
   if(k==="now"){const cur=W.filter(e=>e.year===cy);
@@ -327,18 +329,22 @@ function vHall(){
     ${cur.length?`<div class="hof-grid">${cur.map((e,i)=>hofCard(e,i)).join("")}</div>`:`<div class="empty"><span class="big emo">🎈</span>ปีการศึกษา ${cy} ยังไม่มีครูดีเด่น<br><button class="btn primary" style="margin-top:12px" data-tab="eval">✍️ ไปประเมินครู</button></div>`}`}
   if(k==="search")body=`<div class="row" style="margin-bottom:10px"><div style="flex:2"><label for="hq">🔎 ค้นหาชื่อครู กลุ่มสาระ หรือหมวดรางวัล</label><input id="hq" type="search" placeholder="เช่น สมใจ หรือ นวัตกรรม" value="${esc(ui.hq)}"></div>
     <div style="flex:1"><label for="hy">📅 ปีการศึกษา</label><select id="hy"><option value="all">ทุกปี</option>${years.map(y=>`<option ${y==ui.hy?"selected":""}>${y}</option>`).join("")}</select></div></div><div id="hres"></div>`;
-  if(k==="table")body=`<p class="muted small" style="margin-top:0">📊 ใครได้ตำแหน่งอะไรในแต่ละปี &nbsp;⚠️ = ได้ตำแหน่งเดิมซ้ำกับปีก่อน ๆ</p>
+  if(k==="table")body=pdfCard(years)+`<p class="muted small" style="margin-top:0">📊 ใครได้ตำแหน่งอะไรในแต่ละปี &nbsp;⚠️ = ได้ตำแหน่งเดิมซ้ำกับปีก่อน ๆ</p>
     <div class="tablewrap"><table class="sumtbl"><thead><tr><th>ปี</th>${S.categories.map(c=>`<th>${catEmoji(c)} ${esc(c)}</th>`).join("")}<th class="r">รวม</th></tr></thead><tbody>
     ${years.map(y=>{const ws=W.filter(e=>e.year===y);return `<tr><th scope="row">${y}${y===cy?' <span class="pill ok">ปีนี้</span>':""}</th>${S.categories.map(c=>{const cell=ws.filter(e=>e.cat===c);
       return `<td>${cell.length?cell.map(e=>`<div>${esc(teacher(e.tid)?.name||"")}${repeatYears(e).length?' <span class="emo" title="ซ้ำตำแหน่ง">⚠️</span>':""}</div>`).join(""):'<span class="muted">–</span>'}</td>`}).join("")}<td class="r"><b>${ws.length}</b></td></tr>`}).join("")}
     </tbody></table></div>`;
-  if(k==="hist")body=`<div class="list">${hist.length?hist.map(e=>{const t=teacher(e.tid),ok=e.pct>=S.pass;return `<details><summary>${esc(t?.name||"")} · ปี ${e.year} · ${fmt(e.pct)} <span class="pill ${ok?"ok":"bad"}">${ok?"🎉 ผ่าน":"ไม่ผ่าน"}</span></summary>
+  if(k==="poster")body=posterCard(years,cy);
+  if(k==="past")body=pastForm(cy);
+  if(k==="hist")body=`<div class="list">${hist.length?hist.map(e=>{const t=teacher(e.tid),ok=isWin(e);return `<details><summary>${esc(t?.name||"")} · ปี ${e.year}${e.pct!=null?" · "+fmt(e.pct):""} <span class="pill ${ok?"ok":"bad"}">${e.past?"📜 ย้อนหลัง":ok?"🎉 ผ่าน":"ไม่ผ่าน"}</span></summary>
     <div style="margin-bottom:8px">${tag(e.cat)}</div>
-    <div style="overflow-x:auto"><table><tr><th>หัวข้อ</th><th class="r">ได้</th><th class="r">เต็ม</th></tr>${e.scores.map(x=>`<tr><td>${esc(x.n)}</td><td class="r">${fmt(x.s)}</td><td class="r">${fmt(x.m)}</td></tr>`).join("")}</table></div>
+    ${e.scores&&e.scores.length?`<div style="overflow-x:auto"><table><tr><th>หัวข้อ</th><th class="r">ได้</th><th class="r">เต็ม</th></tr>${e.scores.map(x=>`<tr><td>${esc(x.n)}</td><td class="r">${fmt(x.s)}</td><td class="r">${fmt(x.m)}</td></tr>`).join("")}</table></div>`:""}
     ${e.note?`<p class="small muted">💬 ${esc(e.note)}</p>`:""}
     <div style="margin-top:10px"><button class="btn danger sm" data-confirm="del-eval" data-id="${e.id}">🗑️ ลบผลประเมินนี้</button></div></details>`}).join(""):`<div class="empty"><span class="big emo">🕘</span>ยังไม่มีประวัติการประเมิน</div>`}</div>`;
-  $("#view").innerHTML=`<h2>🏆 ทำเนียบครูดีเด่น</h2>${seg("hall",[["now","🌟 ปีนี้"],["search","🔎 ค้นหา"],["table","📊 สรุปรายปี"],["hist","🕘 ประวัติ"]])}${body}`;
+  $("#view").innerHTML=`<h2>🏆 ทำเนียบครูดีเด่น</h2>${seg("hall",[["now","🌟 ปีนี้"],["search","🔎 ค้นหา"],["table","📊 สรุปรายปี"],["poster","🖼️ โปสเตอร์"],["past","📜 เพิ่มย้อนหลัง"],["hist","🕘 ประวัติ"]])}${body}`;
   if(k==="search")hallRes();
+  if(k==="table")pdfOut();
+  if(k==="poster")posterOut();
 }
 
 /* ---------- ครู ---------- */
@@ -353,7 +359,7 @@ function vTeachers(){
     <div><button class="btn primary">➕ เพิ่มครู</button></div></form>`;
   }else{
     body=`${S.teachers.length?`<div style="margin-bottom:12px"><label for="t-q">🔎 ค้นหาชื่อครู</label><input id="t-q" type="search" value="${esc(ui.q)}"></div>`:""}
-    <div class="list">${ts.length?ts.map(t=>{const n=S.evals.filter(e=>e.tid===t.id&&e.pct>=S.pass).length;return `<div class="item">${avatar(t,"s")}<div class="info"><b>${esc(t.name)}</b><div class="muted small">${deptEmoji(t.dept)} ${esc(t.dept)}${n?` · 🏆 ${n} ครั้ง`:""}</div></div>
+    <div class="list">${ts.length?ts.map(t=>{const n=S.evals.filter(e=>e.tid===t.id&&isWin(e)).length;return `<div class="item">${avatar(t,"s")}<div class="info"><b>${esc(t.name)}</b><div class="muted small">${deptEmoji(t.dept)} ${esc(t.dept)}${n?` · 🏆 ${n} ครั้ง`:""}</div></div>
     <div class="actions"><button class="btn sm" data-act="edit-t" data-id="${t.id}">✏️</button><button class="btn danger sm" data-confirm="del-t" data-id="${t.id}">🗑️</button></div></div>
     <form class="card stack" data-edit="${t.id}" hidden><div><label>ชื่อ-นามสกุล</label><input name="n" value="${esc(t.name)}" required></div>
     <div><label>กลุ่มสาระ</label><select name="d">${(S.departments.includes(t.dept)?S.departments:[...S.departments,t.dept]).map(d=>`<option ${d===t.dept?"selected":""}>${esc(d)}</option>`).join("")}</select></div>
@@ -362,6 +368,245 @@ function vTeachers(){
   }
   $("#view").innerHTML=`<h2>👩‍🏫 คุณครูของเรา</h2>${seg("teachers",[["list",`📋 รายชื่อ (${S.teachers.length})`],["add","➕ เพิ่มครู"]])}${body}`;
 }
+
+/* ---------- เพิ่มครูดีเด่นย้อนหลัง ---------- */
+function pastForm(cy){
+  const hasT=S.teachers.length>0,past=S.evals.filter(e=>e.past).sort((a,b)=>b.year-a.year||(teacher(a.tid)?.name||"").localeCompare(teacher(b.tid)?.name||"","th"));
+  return `<form class="card stack" id="add-past" autocomplete="off">
+    <p class="muted small" style="margin:0">📜 บันทึกครูดีเด่นของปีที่ผ่านมา เพื่อเก็บไว้ในทำเนียบ ไม่ต้องมีคะแนนก็ได้ กรอกต่อเนื่องได้หลายรายการ</p>
+    <div><label for="p-t">👩‍🏫 ครู</label><select id="p-t">${S.teachers.slice().sort((a,b)=>a.name.localeCompare(b.name,"th")).map(t=>`<option value="${t.id}">${esc(t.name)}</option>`).join("")}<option value="__new" ${hasT?"":"selected"}>➕ ครูท่านใหม่ (พิมพ์ชื่อ)</option></select></div>
+    <div id="p-new" class="stack" ${hasT?"hidden":""}>
+      <div><label for="p-n">ชื่อ-นามสกุล</label><input id="p-n" placeholder="เช่น ครูสมศรี ใจดี"></div>
+      <div><label for="p-d">🏫 กลุ่มสาระ</label><select id="p-d">${S.departments.map(d=>`<option>${esc(d)}</option>`).join("")}</select></div>
+      <div><label for="p-p">📸 รูปภาพ (ไม่บังคับ)</label><input id="p-p" type="file" accept="image/*"></div></div>
+    <div class="row"><div><label for="p-y">📅 ปีการศึกษา (พ.ศ.)</label><input id="p-y" type="number" inputmode="numeric" min="2400" max="2700" value="${ui.pastYear||cy-1}" required></div>
+      <div><label for="p-c">🏅 หมวดรางวัล</label><select id="p-c">${S.categories.map(c=>`<option>${esc(c)}</option>`).join("")}<option value="__new" ${S.categories.length?"":"selected"}>✏️ หมวดอื่น (พิมพ์เอง)</option></select></div></div>
+    <div id="p-cn-w" ${S.categories.length?"hidden":""}><label for="p-cn">ชื่อหมวดรางวัล</label><input id="p-cn" placeholder="เช่น ครูดีเด่นประจำปี"></div>
+    <div><label for="p-s">🎯 คะแนนร้อยละ (ถ้ามี)</label><input id="p-s" type="number" inputmode="decimal" min="0" max="100" step="0.01" placeholder="เว้นว่างได้"></div>
+    <div><label for="p-o">💬 หมายเหตุ / ผลงานเด่น (ไม่บังคับ)</label><textarea id="p-o" rows="2"></textarea></div>
+    <div><button class="btn primary">➕ เพิ่มเข้าทำเนียบ</button></div></form>
+  <h3 style="margin:18px 0 8px">📜 ที่บันทึกย้อนหลังไว้ (${past.length})</h3>
+  <div class="list">${past.length?past.map(e=>{const t=teacher(e.tid);return `<div class="item">${avatar(t,"s")}<div class="info"><b>${esc(t?.name||"")}</b><div class="muted small">ปี ${e.year} · ${esc(e.cat)}${e.pct!=null?" · "+fmt(e.pct)+"%":""}</div></div><div class="actions"><button class="btn danger sm" data-confirm="del-eval" data-id="${e.id}">🗑️</button></div></div>`}).join(""):'<div class="empty"><span class="big emo">📜</span>ยังไม่มีรายการย้อนหลัง</div>'}</div>`}
+
+/* ---------- สรุปเป็น PDF (วาดหน้า A4 ด้วย canvas แล้วประกอบเป็นไฟล์ PDF ในเครื่อง ไม่ต้องใช้อินเทอร์เน็ต) ---------- */
+function pdfCard(years){
+  return `<div class="card stack" style="margin-bottom:12px"><h3>📄 สรุปเป็น PDF</h3>
+    <div class="row"><div><label for="pdf-y">เลือกปีการศึกษา</label><select id="pdf-y"><option value="all">ทุกปี (ทั้งทำเนียบ)</option>${years.map(y=>`<option ${String(y)===String(ui.pdfYear)?"selected":""}>${y}</option>`).join("")}</select></div></div>
+    <div><button class="btn primary" data-act="pdf-make">📄 สร้าง PDF</button></div>
+    <div id="pdf-out"></div></div>`}
+function pdfOut(){
+  const el=$("#pdf-out");if(!el)return;const p=ui.pdf;
+  el.innerHTML=p?`<div style="display:flex;gap:12px;align-items:flex-start"><img src="${p.thumb}" alt="ตัวอย่างหน้าแรก" style="width:92px;border-radius:8px;border:1px solid var(--line)"><div class="stack" style="flex:1;min-width:0"><b>✅ PDF พร้อมแล้ว</b><div class="muted small">${p.pages} หน้า · ${fmt(Math.max(1,Math.round(p.size/1024)))} KB</div><div class="actions"><button class="btn primary sm" data-act="pdf-share">📤 แชร์</button><button class="btn sm" data-act="pdf-save">⬇️ บันทึก</button><button class="btn sm" data-act="pdf-open">👁️ เปิดดู</button></div></div></div><p class="muted small" style="margin:8px 0 0">เป็นไฟล์ภาพคมชัดสำหรับพิมพ์และแชร์ (เลือกคัดลอกข้อความไม่ได้)</p>`:""}
+const PW=1240,PH=1754,PM=84;
+function loadImg(src){return new Promise(r=>{const i=new Image();i.onload=()=>r(i);i.onerror=()=>r(null);i.src=src})}
+function rr(g,x,y,w,h,r){g.beginPath();g.moveTo(x+r,y);g.arcTo(x+w,y,x+w,y+h,r);g.arcTo(x+w,y+h,x,y+h,r);g.arcTo(x,y+h,x,y,r);g.arcTo(x,y,x+w,y,r);g.closePath()}
+function wrapTxt(g,text,maxW){
+  const str=String(text||"");if(!str)return [""];
+  const segs=(window.Intl&&Intl.Segmenter)?[...new Intl.Segmenter("th",{granularity:"word"}).segment(str)].map(z=>z.segment):str.split(/(?<=\s)/);
+  const lines=[];let cur="";
+  const add=w=>{ if(!cur||g.measureText(cur+w).width<=maxW){cur+=w;return}
+    lines.push(cur.trimEnd());cur=w.trimStart()};
+  segs.forEach(w=>{
+    if(g.measureText(w).width>maxW){[...w].forEach(add)}else add(w)});
+  if(cur.trim())lines.push(cur.trimEnd());
+  return lines.length?lines:[""]}
+async function buildPdf(sel){
+  const BODY='"Noto Sans Thai","Sarabun",system-ui,sans-serif',DISP='"Prompt","Noto Sans Thai",system-ui,sans-serif';
+  const NAVY="#1B2A6B",MUTED="#6670A0",PINK="#E8157F",BLUE="#3454F5",SOFT="#F1F0FF",LINE="#E4E2F7",OK="#0E8F5A";
+  try{await Promise.all(['400 28px "Noto Sans Thai"','600 28px "Noto Sans Thai"','700 28px "Prompt"','600 28px "Prompt"'].map(f=>document.fonts.load(f,"ครู")))}catch(_){}
+  let W=winnersAll();if(sel!=="all")W=W.filter(e=>String(e.year)===String(sel));
+  if(!W.length)return null;
+  const years=[...new Set(W.map(e=>e.year))].sort((a,b)=>b-a);
+  const imgs={};await Promise.all(S.teachers.filter(t=>t.photo&&W.some(e=>e.tid===t.id)).map(async t=>{imgs[t.id]=await loadImg(t.photo)}));
+  const CW=[70,370,220,312,100],CX=[];CW.reduce((a,w,i)=>(CX[i]=PM+a,a+w),0);
+  const pages=[];let g,y;
+  const title=sel==="all"?(years.length>1?`สรุปครูดีเด่น ปีการศึกษา ${years[years.length-1]}–${years[0]}`:`สรุปครูดีเด่น ปีการศึกษา ${years[0]}`):`สรุปครูดีเด่น ปีการศึกษา ${sel}`;
+  function newPage(first){
+    const cv=document.createElement("canvas");cv.width=PW;cv.height=PH;g=cv.getContext("2d");pages.push(cv);
+    g.fillStyle="#fff";g.fillRect(0,0,PW,PH);g.textBaseline="alphabetic";g.textAlign="left";
+    if(first){
+      const gr=g.createLinearGradient(0,0,PW,250);gr.addColorStop(0,"#3454F5");gr.addColorStop(.55,"#7B4DFF");gr.addColorStop(1,"#FF4DA6");
+      g.fillStyle=gr;g.fillRect(0,0,PW,250);
+      g.fillStyle="#fff";g.font=`700 68px ${DISP}`;g.fillText("ทำเนียบครูดีเด่น",PM,118);
+      g.font=`400 32px ${BODY}`;g.fillText(title,PM,176);
+      g.font=`400 24px ${BODY}`;g.globalAlpha=.9;g.fillText("จัดทำเมื่อ "+new Date().toLocaleDateString("th-TH",{day:"numeric",month:"long",year:"numeric"}),PM,220);g.globalAlpha=1;
+      const tw=(PW-2*PM-40)/3,T=[["ปีการศึกษา",years.length>1?`${years[years.length-1]}–${years[0]}`:String(years[0]),"#E3E9FF","#1F36B8"],["ครูดีเด่นทั้งหมด",`${W.length} ท่าน`,"#D3F8EA","#0A7A55"],["เกณฑ์ผ่าน",`ร้อยละ ${fmt(S.pass)}`,"#FFE3F1","#B00E5F"]];
+      T.forEach(([l,v,bg,fg],i)=>{const tx=PM+i*(tw+20);g.fillStyle=bg;rr(g,tx,288,tw,104,20);g.fill();g.fillStyle=fg;g.font=`400 24px ${BODY}`;g.fillText(l,tx+22,326);g.font=`700 40px ${DISP}`;g.fillText(v,tx+22,372)});
+      y=440;
+    }else{
+      g.fillStyle=MUTED;g.font=`400 24px ${BODY}`;g.fillText("ทำเนียบครูดีเด่น · "+title,PM,PM-8);
+      g.strokeStyle=LINE;g.lineWidth=2;g.beginPath();g.moveTo(PM,PM+6);g.lineTo(PW-PM,PM+6);g.stroke();y=PM+40;
+    }
+  }
+  function head(yr,cont){
+    g.fillStyle=BLUE;rr(g,PM,y,PW-2*PM,64,16);g.fill();
+    g.fillStyle="#fff";g.textBaseline="middle";g.font=`700 34px ${DISP}`;g.fillText(`ปีการศึกษา ${yr}${cont?" (ต่อ)":""}`,PM+24,y+33);
+    g.textAlign="right";g.font=`600 26px ${BODY}`;g.fillText(`${W.filter(e=>e.year===yr).length} ท่าน`,PW-PM-24,y+33);g.textAlign="left";g.textBaseline="alphabetic";
+    y+=64+10;
+    g.fillStyle=SOFT;g.fillRect(PM,y,PW-2*PM,52);g.fillStyle=NAVY;g.font=`600 24px ${BODY}`;
+    ["ที่","ชื่อครู","กลุ่มสาระ","หมวดรางวัล","คะแนน"].forEach((h,i)=>g.fillText(h,CX[i]+(i===0?10:i===1?10:10),y+34));
+    y+=52}
+  function row(e,i){
+    const t=teacher(e.tid),rp=repeatYears(e);
+    g.font=`600 28px ${BODY}`;const nameL=wrapTxt(g,t?.name||"",CW[1]-72-10);
+    g.font=`400 22px ${BODY}`;const noteL=e.note?wrapTxt(g,e.note,CW[1]-72-10).slice(0,2):[];
+    g.font=`400 26px ${BODY}`;const deptL=wrapTxt(g,t?.dept||"",CW[2]-20),catL=wrapTxt(g,e.cat,CW[3]-20);
+    g.font=`400 22px ${BODY}`;const repL=rp.length?wrapTxt(g,"ซ้ำตำแหน่ง ปี "+rp.join(", "),CW[3]-20):[];
+    const h=Math.max(80,14+Math.max(nameL.length*38+noteL.length*30,deptL.length*36,catL.length*36+repL.length*30)+14);
+    return {t,e,i,nameL,noteL,deptL,catL,repL,h}}
+  function drawRow(r){
+    const {t,e,i}=r;
+    if(i%2===1){g.fillStyle="#FAF9FF";g.fillRect(PM,y,PW-2*PM,r.h)}
+    g.strokeStyle=LINE;g.lineWidth=1.5;g.beginPath();g.moveTo(PM,y+r.h);g.lineTo(PW-PM,y+r.h);g.stroke();
+    g.fillStyle=MUTED;g.font=`600 26px ${BODY}`;g.fillText(String(i+1),CX[0]+10,y+14+28);
+    const ax=CX[1]+10,ay=y+(r.h-56)/2;
+    g.save();g.beginPath();g.arc(ax+28,ay+28,28,0,Math.PI*2);g.clip();
+    const im=imgs[e.tid];
+    if(im){const s=Math.max(56/im.width,56/im.height),w=im.width*s,h=im.height*s;g.drawImage(im,ax+(56-w)/2,ay+(56-h)/2,w,h)}
+    else{const gr=g.createLinearGradient(ax,ay,ax+56,ay+56);gr.addColorStop(0,"#7B4DFF");gr.addColorStop(1,"#FF4DA6");g.fillStyle=gr;g.fillRect(ax,ay,56,56);g.fillStyle="#fff";g.font=`700 28px ${DISP}`;g.textAlign="center";g.fillText(initials(t?.name||"?"),ax+28,ay+38);g.textAlign="left"}
+    g.restore();
+    const nx=CX[1]+72;g.fillStyle=NAVY;g.font=`600 28px ${BODY}`;r.nameL.forEach((s,k)=>g.fillText(s,nx,y+14+28+k*38));
+    g.fillStyle=MUTED;g.font=`400 22px ${BODY}`;r.noteL.forEach((s,k)=>g.fillText(s,nx,y+14+28+r.nameL.length*38-6+(k+1)*30-18));
+    g.fillStyle=NAVY;g.font=`400 26px ${BODY}`;r.deptL.forEach((s,k)=>g.fillText(s,CX[2]+10,y+14+27+k*36));
+    r.catL.forEach((s,k)=>g.fillText(s,CX[3]+10,y+14+27+k*36));
+    g.fillStyle=PINK;g.font=`400 22px ${BODY}`;r.repL.forEach((s,k)=>g.fillText(s,CX[3]+10,y+14+27+r.catL.length*36+k*30-2));
+    g.fillStyle=e.pct!=null?OK:MUTED;g.font=`600 28px ${BODY}`;g.fillText(e.pct!=null?fmt(e.pct):"–",CX[4]+10,y+14+28);
+    y+=r.h}
+  newPage(true);
+  const LIM=PH-PM-30;
+  years.forEach(yr=>{
+    const rows=W.filter(e=>e.year===yr).map((e,i)=>row(e,i));
+    if(y+64+10+52+rows[0].h>LIM)newPage(false);
+    head(yr,false);
+    rows.forEach(r=>{if(y+r.h>LIM){newPage(false);head(yr,true)}drawRow(r)});
+    y+=34});
+  const N=pages.length;
+  pages.forEach((cv,i)=>{const c=cv.getContext("2d");c.strokeStyle=LINE;c.lineWidth=2;c.beginPath();c.moveTo(PM,PH-62);c.lineTo(PW-PM,PH-62);c.stroke();
+    c.fillStyle=MUTED;c.font=`400 22px ${BODY}`;c.textAlign="left";c.fillText("สร้างจากแอปทำเนียบครูดีเด่น",PM,PH-26);c.textAlign="right";c.fillText(`หน้า ${i+1}/${N}`,PW-PM,PH-26)});
+  const jp=[];
+  for(const cv of pages){const b=await new Promise(r=>cv.toBlob(r,"image/jpeg",.92));if(!b)throw new Error("jpeg");jp.push({data:new Uint8Array(await b.arrayBuffer()),w:PW,h:PH})}
+  const th=document.createElement("canvas");th.width=276;th.height=Math.round(276*PH/PW);th.getContext("2d").drawImage(pages[0],0,0,th.width,th.height);
+  const blob=makePdf(jp);
+  return {blob,name:`teacher-hall-of-fame-${sel}.pdf`,pages:N,size:blob.size,thumb:th.toDataURL("image/jpeg",.7),url:URL.createObjectURL(blob)}}
+function makePdf(jp){
+  const enc=new TextEncoder(),parts=[],offs=[];let len=0;
+  const push=b=>{const u=typeof b==="string"?enc.encode(b):b;parts.push(u);len+=u.length};
+  const obj=(n,fn)=>{offs[n]=len;push(`${n} 0 obj\n`);fn();push("\nendobj\n")};
+  push("%PDF-1.4\n");push(new Uint8Array([37,226,227,207,211,10]));
+  const N=jp.length;
+  obj(1,()=>push("<< /Type /Catalog /Pages 2 0 R >>"));
+  obj(2,()=>push(`<< /Type /Pages /Count ${N} /Kids [${jp.map((_,i)=>`${3+3*i} 0 R`).join(" ")}] >>`));
+  jp.forEach((j,i)=>{const p=3+3*i,cs="q 595.28 0 0 841.89 0 0 cm /Im0 Do Q";
+    obj(p,()=>push(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 595.28 841.89] /Resources << /XObject << /Im0 ${p+2} 0 R >> >> /Contents ${p+1} 0 R >>`));
+    obj(p+1,()=>push(`<< /Length ${cs.length} >>\nstream\n${cs}\nendstream`));
+    obj(p+2,()=>{push(`<< /Type /XObject /Subtype /Image /Width ${j.w} /Height ${j.h} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${j.data.length} >>\nstream\n`);push(j.data);push("\nendstream")})});
+  const total=3*N+3,xr=len;
+  push(`xref\n0 ${total}\n0000000000 65535 f \n`);
+  for(let n=1;n<total;n++)push(String(offs[n]).padStart(10,"0")+" 00000 n \n");
+  push(`trailer\n<< /Size ${total} /Root 1 0 R >>\nstartxref\n${xr}\n%%EOF`);
+  const out=new Uint8Array(len);let o=0;parts.forEach(u=>{out.set(u,o);o+=u.length});
+  return new Blob([out],{type:"application/pdf"})}
+function pdfSave(){const p=ui.pdf;if(!p)return;const a=document.createElement("a");a.href=p.url;a.download=p.name;document.body.appendChild(a);a.click();a.remove()}
+async function pdfShare(){
+  const p=ui.pdf;if(!p)return;const f=new File([p.blob],p.name,{type:"application/pdf"});
+  if(navigator.canShare&&navigator.canShare({files:[f]})){
+    try{await navigator.share({files:[f],title:"ทำเนียบครูดีเด่น"})}catch(err){if(err&&err.name!=="AbortError")toast("แชร์ไม่สำเร็จ ลองกด “บันทึก” แล้วส่งไฟล์เองได้")}
+  }else{pdfSave();toast("เครื่องนี้แชร์ไฟล์ตรง ๆ ไม่ได้ จึงบันทึกไฟล์ให้แทน แล้วส่งต่อได้เลย")}}
+
+/* ---------- โปสเตอร์ครูดีเด่นประจำปี ---------- */
+const POSTER_THEMES=[["ม่วง-ชมพู",["#3454F5","#7B4DFF","#FF4DA6"]],["น้ำเงิน-ทอง",["#0E1B4D","#27409E","#5B3FA8"]],["เขียวมรกต",["#0B6B50","#16A37A","#5CCB9F"]]];
+function posterYears(){return [...new Set(winnersAll().map(e=>e.year))].sort((a,b)=>b-a)}
+function posterCard(years,cy){
+  if(!years.length)return `<div class="empty"><span class="big emo">🖼️</span>ยังไม่มีครูดีเด่นให้ทำโปสเตอร์<br><button class="btn primary" style="margin-top:12px" data-tab="eval">✍️ ไปประเมินครู</button></div>`;
+  const ys=posterYears();if(!ys.includes(+ui.posterYear))ui.posterYear=ys.includes(cy)?cy:ys[0];
+  return `<div class="card stack"><h3>🖼️ สร้างโปสเตอร์ครูดีเด่น</h3>
+    <div class="row"><div><label for="po-y">📅 ปีการศึกษา</label><select id="po-y">${ys.map(y=>`<option ${y===+ui.posterYear?"selected":""}>${y}</option>`).join("")}</select></div>
+    <div><label for="po-t">🎨 โทนสี</label><select id="po-t">${POSTER_THEMES.map((t,i)=>`<option value="${i}" ${i===+ui.posterTheme?"selected":""}>${t[0]}</option>`).join("")}</select></div></div>
+    <div><label for="po-s">🏫 ชื่อโรงเรียน (ไม่บังคับ จะขึ้นบนโปสเตอร์)</label><input id="po-s" value="${esc(S.school||"")}" placeholder="เช่น โรงเรียนตัวอย่างวิทยา"></div>
+    <div><button class="btn primary" data-act="poster-make">🖼️ สร้างโปสเตอร์</button></div>
+    <div id="po-out"></div></div>`}
+function posterOut(){
+  const el=$("#po-out");if(!el)return;const p=ui.poster;
+  el.innerHTML=p?`<div class="stack"><b>✅ โปสเตอร์ปีการศึกษา ${p.year} พร้อมแล้ว${p.files.length>1?` (${p.files.length} แผ่น)`:""}</b>
+    <div style="display:flex;gap:10px;overflow-x:auto;padding-bottom:4px">${p.files.map(f=>`<img src="${f.thumb}" alt="ตัวอย่างโปสเตอร์" style="height:210px;border-radius:10px;border:1px solid var(--line);flex:none">`).join("")}</div>
+    <div class="actions"><button class="btn primary sm" data-act="poster-share">📤 แชร์รูป</button><button class="btn sm" data-act="poster-save">⬇️ บันทึกรูป</button><button class="btn sm" data-act="poster-pdf">📄 เป็น PDF</button></div>
+    <p class="muted small" style="margin:0">ได้รูป JPG คมชัดขนาด A4 พร้อมพิมพ์หรือโพสต์ แก้ข้อมูลแล้วกดสร้างใหม่ได้เสมอ</p></div>`:""}
+function starPath(g,cx,cy,r,rot){g.beginPath();for(let i=0;i<10;i++){const a=rot+i*Math.PI/5-Math.PI/2,d=i%2?r*.45:r;g.lineTo(cx+Math.cos(a)*d,cy+Math.sin(a)*d)}g.closePath()}
+async function buildPoster(year,themeIdx,school){
+  const BODY='"Noto Sans Thai","Sarabun",system-ui,sans-serif',DISP='"Prompt","Noto Sans Thai",system-ui,sans-serif';
+  try{await Promise.all(['400 28px "Noto Sans Thai"','600 28px "Noto Sans Thai"','700 28px "Prompt"'].map(f=>document.fonts.load(f,"ครู")))}catch(_){}
+  const W=winnersAll().filter(e=>e.year===+year).sort((a,b)=>S.categories.indexOf(a.cat)-S.categories.indexOf(b.cat)||(teacher(a.tid)?.name||"").localeCompare(teacher(b.tid)?.name||"","th"));
+  if(!W.length)return null;
+  const [c1,c2,c3]=POSTER_THEMES[themeIdx][1],GOLD="#FFD34D",NAVY="#1B2A6B",MUTED="#6670A0";
+  const TAG=[["#FFE3F1","#B00E5F"],["#E3E9FF","#1F36B8"],["#FFF1C2","#855400"],["#D3F8EA","#0A7A55"],["#EBE1FF","#5B2FC4"]];
+  const imgs={};await Promise.all(S.teachers.filter(t=>t.photo&&W.some(e=>e.tid===t.id)).map(async t=>{imgs[t.id]=await loadImg(t.photo)}));
+  const PWd=1500,PHt=2121,MX=90,GAP=40;
+  const pageCount=Math.ceil(W.length/9),per=Math.ceil(W.length/pageCount);
+  const files=[];
+  for(let pi=0;pi<pageCount;pi++){
+    const list=W.slice(pi*per,(pi+1)*per),n=list.length;
+    const cv=document.createElement("canvas");cv.width=PWd;cv.height=PHt;const g=cv.getContext("2d");
+    const bg=g.createLinearGradient(0,0,PWd*.35,PHt);bg.addColorStop(0,c1);bg.addColorStop(.55,c2);bg.addColorStop(1,c3);g.fillStyle=bg;g.fillRect(0,0,PWd,PHt);
+    let sd=(+year*9301+49297+pi*77)%233280;const rnd=()=>(sd=(sd*9301+49297)%233280)/233280;
+    for(let i=0;i<46;i++){const x=rnd()*PWd,y=rnd()*PHt,r=8+rnd()*26;g.globalAlpha=.10+rnd()*.22;g.fillStyle=i%3?"#fff":GOLD;if(i%4===0){g.beginPath();g.arc(x,y,r*1.3,0,7);g.fill()}else{starPath(g,x,y,r,rnd()*1.2);g.fill()}}
+    g.globalAlpha=1;g.textAlign="center";g.textBaseline="alphabetic";
+    // หัวโปสเตอร์
+    let hb;
+    if(pi===0){
+      g.fillStyle="rgba(255,255,255,.92)";g.font=`600 44px ${BODY}`;g.fillText("ขอแสดงความยินดีกับ",PWd/2,150);
+      g.save();g.shadowColor="rgba(0,0,0,.28)";g.shadowBlur=24;g.shadowOffsetY=8;g.fillStyle="#fff";g.font=`700 170px ${DISP}`;g.fillText("ครูดีเด่น",PWd/2,330);g.restore();
+      g.font=`700 66px ${DISP}`;const label=`ปีการศึกษา ${year}`,tw=g.measureText(label).width+110;
+      g.fillStyle=GOLD;rr(g,(PWd-tw)/2,380,tw,104,52);g.fill();g.fillStyle=NAVY;g.textBaseline="middle";g.fillText(label,PWd/2,434);g.textBaseline="alphabetic";
+      hb=500;if(school&&school.trim()){g.fillStyle="rgba(255,255,255,.95)";g.font=`600 42px ${BODY}`;g.fillText(wrapTxt(g,school.trim(),PWd-2*MX)[0],PWd/2,556);hb=590}
+    }else{
+      g.fillStyle="#fff";g.font=`700 76px ${DISP}`;g.fillText("ครูดีเด่น",PWd/2,170);g.fillStyle=GOLD;g.font=`600 46px ${BODY}`;g.fillText(`ปีการศึกษา ${year} (ต่อ)`,PWd/2,240);hb=290}
+    // การ์ด
+    const cols=n===1?1:n<=4?2:3,rows=Math.ceil(n/cols);
+    const areaTop=hb+40,areaH=PHt-areaTop-170,cw=Math.min(760,(PWd-2*MX-GAP*(cols-1))/cols);
+    const ch=Math.min((areaH-GAP*(rows-1))/rows,cw*1.3,820);
+    const totalH=rows*ch+GAP*(rows-1),y0=areaTop+(areaH-totalH)/2;
+    list.forEach((e,i)=>{
+      const r=Math.floor(i/cols),inRow=r===rows-1?n-r*cols:cols,rowW=inRow*cw+GAP*(inRow-1);
+      const x=(PWd-rowW)/2+(i%cols)*(cw+GAP),y=y0+r*(ch+GAP),t=teacher(e.tid);
+      g.save();g.shadowColor="rgba(0,0,0,.25)";g.shadowBlur=30;g.shadowOffsetY=10;g.fillStyle="rgba(255,255,255,.97)";rr(g,x,y,cw,ch,36);g.fill();g.restore();
+      const base=cols===1?72:cols===2?56:44,d=Math.min(cw*.58,ch*.44),pad=cw*.07;
+      let sc=1,L;
+      for(let k=0;k<9;k++){
+        const nf=Math.round(base*sc),df=Math.round(nf*.62),cf=Math.round(nf*.56);
+        g.font=`700 ${nf}px ${DISP}`;const nameL=wrapTxt(g,t?.name||"",cw-2*pad);
+        g.font=`400 ${df}px ${BODY}`;const deptL=wrapTxt(g,t?.dept||"",cw-2*pad).slice(0,2);
+        g.font=`600 ${cf}px ${BODY}`;const catL=wrapTxt(g,e.cat,cw-2*pad-44).slice(0,2);
+        const h=pad*.6+d+22+nameL.length*nf*1.3+10+deptL.length*df*1.4+16+catL.length*cf*1.4+30+pad*.6;
+        L={nf,df,cf,nameL,deptL,catL,h};if(h<=ch||sc<.5)break;sc*=.9}
+      let cy=y+pad*.6+(ch-L.h)/2;if(cy<y+10)cy=y+10;
+      const cx=x+cw/2;
+      g.beginPath();g.arc(cx,cy+d/2,d/2+10,0,Math.PI*2);g.fillStyle=GOLD;g.fill();
+      g.save();g.beginPath();g.arc(cx,cy+d/2,d/2,0,Math.PI*2);g.clip();
+      const im=imgs[e.tid];
+      if(im){const s2=Math.max(d/im.width,d/im.height),w2=im.width*s2,h2=im.height*s2;g.drawImage(im,cx-w2/2,cy+d/2-h2/2,w2,h2)}
+      else{const gr=g.createLinearGradient(cx-d/2,cy,cx+d/2,cy+d);gr.addColorStop(0,c2);gr.addColorStop(1,"#FF4DA6");g.fillStyle=gr;g.fillRect(cx-d/2,cy,d,d);g.fillStyle="#fff";g.font=`700 ${Math.round(d*.46)}px ${DISP}`;g.textBaseline="middle";g.fillText(initials(t?.name||"?"),cx,cy+d/2+4);g.textBaseline="alphabetic"}
+      g.restore();
+      cy+=d+22;
+      g.fillStyle=NAVY;g.font=`700 ${L.nf}px ${DISP}`;L.nameL.forEach((s2,k)=>g.fillText(s2,cx,cy+L.nf*.95+k*L.nf*1.3));cy+=L.nameL.length*L.nf*1.3+10;
+      g.fillStyle=MUTED;g.font=`400 ${L.df}px ${BODY}`;L.deptL.forEach((s2,k)=>g.fillText(s2,cx,cy+L.df*.95+k*L.df*1.4));cy+=L.deptL.length*L.df*1.4+16;
+      const tg=TAG[hash(e.cat)%5];g.font=`600 ${L.cf}px ${BODY}`;
+      const pw=Math.min(cw-2*pad,Math.max(...L.catL.map(s2=>g.measureText(s2).width))+44),ph=L.catL.length*L.cf*1.4+14;
+      g.fillStyle=tg[0];rr(g,cx-pw/2,cy,pw,ph,ph/2>40?30:ph/2);g.fill();g.fillStyle=tg[1];L.catL.forEach((s2,k)=>g.fillText(s2,cx,cy+7+L.cf*1.05+k*L.cf*1.4));
+    });
+    g.fillStyle="rgba(255,255,255,.95)";g.font=`600 40px ${BODY}`;g.fillText("ขอบคุณที่เป็นแรงบันดาลใจให้นักเรียนและเพื่อนครู",PWd/2,PHt-96);
+    g.fillStyle="rgba(255,255,255,.7)";g.font=`400 26px ${BODY}`;g.fillText(pageCount>1?`แผ่นที่ ${pi+1}/${pageCount} · ทำเนียบครูดีเด่น`:"ทำเนียบครูดีเด่น",PWd/2,PHt-48);
+    const blob=await new Promise(r=>cv.toBlob(r,"image/jpeg",.92));if(!blob)throw new Error("jpeg");
+    const th=document.createElement("canvas");th.width=300;th.height=Math.round(300*PHt/PWd);th.getContext("2d").drawImage(cv,0,0,th.width,th.height);
+    files.push({blob,name:`teacher-poster-${year}${pageCount>1?"-"+(pi+1):""}.jpg`,url:URL.createObjectURL(blob),thumb:th.toDataURL("image/jpeg",.75),w:PWd,h:PHt})}
+  return {year,files}}
+async function posterShare(kind){
+  const p=ui.poster;if(!p)return;let fs;
+  if(kind==="pdf"){const jp=[];for(const f of p.files)jp.push({data:new Uint8Array(await f.blob.arrayBuffer()),w:f.w,h:f.h});fs=[new File([makePdf(jp)],`teacher-poster-${p.year}.pdf`,{type:"application/pdf"})]}
+  else fs=p.files.map(f=>new File([f.blob],f.name,{type:"image/jpeg"}));
+  if(kind!=="save"&&navigator.canShare&&navigator.canShare({files:fs})){
+    try{await navigator.share({files:fs,title:`ครูดีเด่น ปีการศึกษา ${p.year}`});return}catch(err){if(err&&err.name==="AbortError")return}}
+  fs.forEach((f,i)=>setTimeout(()=>{const u=URL.createObjectURL(f),a=document.createElement("a");a.href=u;a.download=f.name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(u),4000)},i*400));
+  toast(kind==="save"?"บันทึกรูปแล้ว 🖼️":"เครื่องนี้แชร์ไฟล์ตรง ๆ ไม่ได้ จึงบันทึกไฟล์ให้แทน")}
 
 /* ---------- ตั้งค่า (เมนูหลัก → หน้าย่อยทีละเรื่อง) ---------- */
 const RS={pass:["🎯","เกณฑ์ผ่านและปีการศึกษา","k1"],crit:["📝","หัวข้อประเมิน","k0"],cat:["🏅","หมวดรางวัล","k2"],dept:["🏫","กลุ่มสาระ","k3"],data:["💾","สำรองและนำเข้าข้อมูล","k4"],about:["🔄","อัปเดตและติดตั้งแอป","k1"]};
@@ -449,6 +694,18 @@ document.addEventListener("click",async e=>{
     if(k==="del-crit"){S.criteria=S.criteria.filter(x=>x.id!==id);if(ui.ec===id)ui.ec=null}
     save();render();toast("ลบแล้ว");return}
   const a=e.target.closest("[data-act]");if(!a)return;const act=a.dataset.act;
+  if(act==="pdf-make"){a.disabled=true;a.textContent="⏳ กำลังสร้าง…";
+    try{const r=await buildPdf(ui.pdfYear);if(!r)toast("ยังไม่มีครูดีเด่นในปีที่เลือก");else{if(ui.pdf)URL.revokeObjectURL(ui.pdf.url);ui.pdf=r}}catch(err){toast("สร้าง PDF ไม่สำเร็จ ลองใหม่อีกครั้ง")}
+    a.disabled=false;a.textContent="📄 สร้าง PDF";pdfOut()}
+  if(act==="poster-make"){a.disabled=true;a.textContent="⏳ กำลังสร้าง…";
+    try{const r=await buildPoster(ui.posterYear,+ui.posterTheme,S.school||"");if(!r)toast("ปีนี้ยังไม่มีครูดีเด่น");else{if(ui.poster)ui.poster.files.forEach(f=>URL.revokeObjectURL(f.url));ui.poster=r}}catch(err){toast("สร้างโปสเตอร์ไม่สำเร็จ ลองใหม่อีกครั้ง")}
+    a.disabled=false;a.textContent="🖼️ สร้างโปสเตอร์";posterOut()}
+  if(act==="poster-share")posterShare("share");
+  if(act==="poster-save")posterShare("save");
+  if(act==="poster-pdf")posterShare("pdf");
+  if(act==="pdf-share")pdfShare();
+  if(act==="pdf-save")pdfSave();
+  if(act==="pdf-open"&&ui.pdf)window.open(ui.pdf.url,"_blank");
   if(act==="clear-demo"){S.teachers=S.teachers.filter(t=>!t.demo);const ids=new Set(S.teachers.map(t=>t.id));S.evals=S.evals.filter(x=>ids.has(x.tid));S.demo=false;save();render();toast("ล้างข้อมูลตัวอย่างแล้ว เริ่มเลย! 🚀")}
   if(act==="save-eval"){
     const {pct,any}=calc();if(!any)return toast("ยังไม่ได้กรอกคะแนนเลย 😅");
@@ -484,6 +741,11 @@ document.addEventListener("change",async e=>{
   if(t.id==="f-t"){ui.tid=t.value;render()}
   if(t.id==="f-c"){ui.cat=t.value;updDup()}
   if(t.id==="hy"){ui.hy=t.value;hallRes()}
+  if(t.id==="po-y"||t.id==="po-t"){if(t.id==="po-y")ui.posterYear=+t.value;else ui.posterTheme=+t.value;if(ui.poster){ui.poster.files.forEach(f=>URL.revokeObjectURL(f.url));ui.poster=null}posterOut()}
+  if(t.id==="po-s"){S.school=t.value.trim();save()}
+  if(t.id==="pdf-y"){ui.pdfYear=t.value;if(ui.pdf){URL.revokeObjectURL(ui.pdf.url);ui.pdf=null}pdfOut()}
+  if(t.id==="p-t"){const w=$("#p-new");if(w)w.hidden=t.value!=="__new"}
+  if(t.id==="p-c"){const w=$("#p-cn-w");if(w)w.hidden=t.value!=="__new"}
   if(t.id==="r-p"){S.pass=Math.min(100,Math.max(0,+t.value||0));save();toast("บันทึกคะแนนผ่านแล้ว ✅")}
   if(t.id==="r-y"){const y=+t.value;if(y>=2560){S.curYear=y;save();render();toast("ตั้งปีการศึกษาแล้ว ✅")}}
   if(t.id==="r-d"){const d=t.value.split("\n").map(x=>x.trim()).filter(Boolean);if(d.length){S.departments=d;save();toast("บันทึกกลุ่มสาระแล้ว ✅")}}
@@ -504,12 +766,25 @@ document.addEventListener("submit",async e=>{
   if(f.dataset.edit){const t=teacher(f.dataset.edit);t.name=f.n.value.trim()||t.name;t.dept=f.d.value;
     if(f.p.files[0]){try{t.photo=await readPhoto(f.p.files[0])}catch(_){return toast("อ่านไฟล์รูปไม่ได้")}}else if(f.r&&f.r.checked)t.photo="";
     save();render();toast("บันทึกการแก้ไขแล้ว ✅")}
+  if(f.id==="add-past"){
+    let tid=$("#p-t").value;
+    if(tid==="__new"){const n=$("#p-n").value.trim();if(!n)return toast("กรอกชื่อครูก่อนนะ");
+      let photo="";const file=$("#p-p").files[0];if(file){try{photo=await readPhoto(file)}catch(_){return toast("อ่านไฟล์รูปไม่ได้")}}
+      const ex=S.teachers.find(t=>t.name===n);
+      if(ex){tid=ex.id;if(photo&&!ex.photo)ex.photo=photo}else{tid=uid();S.teachers.push({id:tid,name:n,dept:$("#p-d").value,photo})}}
+    const yr=+$("#p-y").value;if(!(yr>=2400&&yr<=2700))return toast("ปีการศึกษาไม่ถูกต้อง ใช้ พ.ศ. เช่น 2566");
+    let cat=$("#p-c").value;
+    if(cat==="__new"){cat=$("#p-cn").value.trim();if(!cat)return toast("กรอกชื่อหมวดรางวัลก่อนนะ");if(!S.categories.includes(cat))S.categories.push(cat)}
+    const sc=$("#p-s").value.trim(),pc=sc===""?null:Math.min(100,Math.max(0,+sc));
+    S.evals=S.evals.filter(x=>!(x.tid===tid&&x.year===yr&&x.cat===cat));
+    S.evals.push({id:uid(),tid,year:yr,cat,pct:pc!=null&&!isNaN(pc)?pc:null,note:$("#p-o").value.trim(),scores:[],past:true});
+    ui.pastYear=yr;save();render();toast("เพิ่มเข้าทำเนียบแล้ว 📜 เพิ่มรายการต่อไปได้เลย")}
   if(f.id==="add-c"){const id=uid();S.criteria.push({id,name:$("#c-n").value.trim(),max:Math.max(1,+$("#c-m").value||10),desc:$("#c-d").value.trim(),active:true,e:"✨"});ui.addc=false;ui.ec=id;save();render();toast("เพิ่มหัวข้อแล้ว แก้ไอคอนได้ด้านล่าง ✅")}
   if(f.id==="add-cat"){const n=$("#k-n").value.trim();if(n&&!S.categories.includes(n)){S.categories.push(n);save();render()}}
 });
 addEventListener("popstate",()=>{if(tab==="rules"&&ui.sub.rules!=="menu"){ui.sub.rules="menu";ui.ec=null;render();scrollTo(0,0)}});
 document.addEventListener("hof-upd",()=>{renderTabs();if(tab==="rules"&&(ui.sub.rules==="menu"||ui.sub.rules==="about")){const y=scrollY;vRules();scrollTo(0,y)}});
-window.hofApp={busy:()=>Object.values(ui.draft).some(v=>v!==""&&v!=null)||!!ui.note.trim()||!!($("#a-n")&&$("#a-n").value)||!!($("#imp")&&$("#imp").value)||!!($("#c-n")&&$("#c-n").value)};
+window.hofApp={busy:()=>Object.values(ui.draft).some(v=>v!==""&&v!=null)||!!ui.note.trim()||!!($("#a-n")&&$("#a-n").value)||!!($("#imp")&&$("#imp").value)||!!($("#c-n")&&$("#c-n").value)||!!($("#p-n")&&$("#p-n").value)||!!($("#p-o")&&$("#p-o").value)};
 addEventListener("hashchange",()=>{const h=location.hash.slice(1);if(TABS.some(t=>t[0]===h)&&h!==tab){tab=h;render()}});
 render();
 </script>

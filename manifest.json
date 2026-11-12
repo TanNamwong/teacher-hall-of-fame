@@ -1,0 +1,24 @@
+{
+  "id": "./",
+  "name": "ทำเนียบครูดีเด่น",
+  "short_name": "ครูดีเด่น",
+  "description": "ประเมินและคัดเลือกครูดีเด่นประจำปี ใช้งานออฟไลน์ได้",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#FBFAFF",
+  "theme_color": "#3454F5",
+  "lang": "th",
+  "categories": ["education", "productivity"],
+  "icons": [
+    {"src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any"},
+    {"src": "icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable"},
+    {"src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any"}
+  ],
+  "shortcuts": [
+    {"name": "ประเมินครู", "short_name": "ประเมิน", "url": "./#eval", "icons": [{"src": "icon-192.png", "sizes": "192x192"}]},
+    {"name": "ทำเนียบปีนี้", "short_name": "ทำเนียบ", "url": "./#hall", "icons": [{"src": "icon-192.png", "sizes": "192x192"}]}
+  ]
+}

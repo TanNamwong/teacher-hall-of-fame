@@ -1,0 +1,502 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#3454F5">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="ครูดีเด่น">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<title>ทำเนียบครูดีเด่น</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@400;500;600&family=Prompt:wght@500;600;700&display=swap">
+<style>
+/* Layout: bright gradient hero, colourful pastel tags per award, fixed emoji bottom nav, sub-tabs per topic */
+:root{
+  --bg:#FBFAFF; --surface:#FFFFFF; --soft:#F1F0FF; --line:#E4E2F7;
+  --navy:#1B2A6B; --fg:#1B2A6B; --muted:#6670A0;
+  --pink:#E8157F; --pink-ink:#FFFFFF; --blue:#3454F5;
+  --k0bg:#FFE3F1; --k0fg:#B00E5F; --k1bg:#E3E9FF; --k1fg:#1F36B8; --k2bg:#FFF1C2; --k2fg:#855400;
+  --k3bg:#D3F8EA; --k3fg:#0A7A55; --k4bg:#EBE1FF; --k4fg:#5B2FC4;
+  --ok:#0E8F5A; --bad:#D12F55;
+  --hero-a:#3454F5; --hero-b:#7B4DFF; --hero-c:#FF4DA6;
+  --shadow:0 2px 12px rgba(52,84,245,.08);
+  --display:'Prompt','Noto Sans Thai',system-ui,sans-serif;
+  --body:'Noto Sans Thai','Sarabun',system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0E1330; --surface:#171E4A; --soft:#1E2760; --line:#2E3978;
+  --navy:#F0F2FF; --fg:#EEF0FF; --muted:#A3ADDD; --pink:#FF5DB1; --pink-ink:#1A0A16; --blue:#7C93FF;
+  --k0bg:#4A1B3A; --k0fg:#FF9BCF; --k1bg:#1F2D6E; --k1fg:#A9B9FF; --k2bg:#4A3A10; --k2fg:#FFD56B;
+  --k3bg:#124434; --k3fg:#6BE8BC; --k4bg:#33236B; --k4fg:#C6AEFF;
+  --ok:#4FD39A; --bad:#FF7A93; --shadow:0 2px 14px rgba(0,0,0,.35); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E1330; --surface:#171E4A; --soft:#1E2760; --line:#2E3978;
+  --navy:#F0F2FF; --fg:#EEF0FF; --muted:#A3ADDD; --pink:#FF5DB1; --pink-ink:#1A0A16; --blue:#7C93FF;
+  --k0bg:#4A1B3A; --k0fg:#FF9BCF; --k1bg:#1F2D6E; --k1fg:#A9B9FF; --k2bg:#4A3A10; --k2fg:#FFD56B;
+  --k3bg:#124434; --k3fg:#6BE8BC; --k4bg:#33236B; --k4fg:#C6AEFF;
+  --ok:#4FD39A; --bad:#FF7A93; --shadow:0 2px 14px rgba(0,0,0,.35); color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:14px;line-height:1.55;margin:0}
+.wrap{max-width:760px;margin:0 auto;padding-inline:max(16px,env(safe-area-inset-left,0px)) max(16px,env(safe-area-inset-right,0px));padding-block:12px calc(96px + env(safe-area-inset-bottom,0px))}
+h1,h2,h3{font-family:var(--display);margin:0;text-wrap:balance}
+h2{font-size:1.2rem;color:var(--navy);margin-bottom:10px}
+h3{font-size:1rem;color:var(--navy);margin-bottom:8px}
+.muted{color:var(--muted)}.small{font-size:.82rem}
+.emo{font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif}
+
+.hero{position:relative;overflow:hidden;background:linear-gradient(115deg,var(--hero-a) 0%,var(--hero-b) 55%,var(--hero-c) 115%);color:#fff;border-radius:22px;padding:16px 18px;display:flex;align-items:center;gap:14px;box-shadow:0 10px 26px rgba(91,77,255,.3)}
+.hero .mark{width:50px;height:50px;border-radius:16px;background:rgba(255,255,255,.2);display:grid;place-items:center;font-size:1.7rem;flex:none}
+.hero h1{font-size:1.3rem;font-weight:700;line-height:1.2;color:#fff}
+.hero p{margin:2px 0 0;opacity:.92;font-size:.82rem}
+.hero .deco{position:absolute;right:-6px;top:-10px;font-size:3.4rem;opacity:.16;transform:rotate(14deg);pointer-events:none}
+.hero .deco.b{right:70px;top:auto;bottom:-14px;font-size:2.4rem;transform:rotate(-10deg)}
+.hero .yearchip{margin-left:auto;background:rgba(255,255,255,.22);border-radius:14px;padding:6px 12px;text-align:center;line-height:1.2;position:relative}
+.hero .yearchip b{display:block;font:700 1.15rem var(--display)}.hero .yearchip span{font-size:.65rem;opacity:.9}
+.notice{display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:var(--k2bg);color:var(--k2fg);border-radius:14px;padding:10px 14px;margin:12px 0 0;font-size:.85rem}
+.notice>span:nth-child(2){flex:1;min-width:180px}.notice button{margin-left:auto}
+#view{margin-top:16px}
+
+.bnav{position:fixed;left:0;right:0;bottom:0;z-index:15;display:flex;justify-content:center;gap:2px;background:var(--surface);border-top:1px solid var(--line);box-shadow:0 -6px 20px rgba(52,84,245,.1);
+  padding:6px max(8px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(8px,env(safe-area-inset-left,0px))}
+.bnav button{flex:1;max-width:190px;display:flex;flex-direction:column;align-items:center;gap:1px;border:0;background:transparent;color:var(--muted);font:600 .7rem var(--body);padding:5px 4px;border-radius:14px;cursor:pointer;transition:.15s}
+.bnav button .ic{font-size:1.4rem;line-height:1.25;filter:grayscale(.55);transition:.15s}
+.bnav button[aria-selected="true"]{color:var(--pink);background:var(--k0bg)}
+.bnav button[aria-selected="true"] .ic{filter:none;transform:translateY(-2px) scale(1.12)}
+.seg{display:flex;gap:4px;background:var(--soft);padding:4px;border-radius:14px;margin-bottom:14px;overflow-x:auto}
+.seg button{flex:1;white-space:nowrap;border:0;background:transparent;color:var(--navy);font:600 .84rem var(--body);padding:8px 12px;border-radius:10px;cursor:pointer}
+.seg button[aria-selected="true"]{background:var(--surface);color:var(--pink);box-shadow:var(--shadow)}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px;box-shadow:var(--shadow)}
+.row{display:flex;gap:12px;flex-wrap:wrap}.row>*{flex:1;min-width:140px}
+.stack{display:flex;flex-direction:column;gap:12px}
+label{display:block;font-size:.8rem;font-weight:600;color:var(--muted);margin-bottom:4px}
+input,select,textarea{width:100%;font:inherit;color:var(--fg);background:var(--surface);border:1.5px solid var(--line);border-radius:12px;padding:9px 12px}
+textarea{resize:vertical;min-height:68px}
+input[type=checkbox]{width:auto}input[type=file]{padding:8px}
+input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible,summary:focus-visible{outline:2.5px solid var(--pink);outline-offset:1px}
+
+.btn{font:600 .88rem var(--body);border-radius:12px;border:1.5px solid var(--blue);background:transparent;color:var(--blue);padding:9px 16px;cursor:pointer;transition:.15s}
+.btn:hover{border-color:var(--pink);color:var(--pink)}
+.btn.primary{background:linear-gradient(135deg,var(--pink),#FF5A5A 130%);border-color:transparent;color:var(--pink-ink)}
+.btn.primary:hover{filter:brightness(1.08);color:var(--pink-ink);transform:translateY(-1px)}
+.btn.danger{border-color:var(--line);color:var(--bad)}.btn.danger:hover{border-color:var(--bad);color:var(--bad)}
+.btn.danger.armed{background:var(--bad);border-color:var(--bad);color:#fff}
+.btn.sm{padding:5px 11px;font-size:.78rem}
+
+.avatar{width:100%;aspect-ratio:1;border-radius:16px;object-fit:cover;display:grid;place-items:center;color:#fff;font:700 2.2rem var(--display);background:var(--g,linear-gradient(135deg,#3454F5,#FF4DA6))}
+.avatar.m{width:72px;border-radius:50%;font-size:1.6rem;flex:none}
+.avatar.s{width:52px;border-radius:50%;font-size:1.2rem;flex:none}
+.g0{--g:linear-gradient(135deg,#FF4DA6,#FF8A5B)}.g1{--g:linear-gradient(135deg,#3454F5,#12A8E8)}.g2{--g:linear-gradient(135deg,#FFB800,#FF7A3D)}.g3{--g:linear-gradient(135deg,#12C28D,#12A8E8)}.g4{--g:linear-gradient(135deg,#7B4DFF,#FF4DA6)}
+.pick{display:flex;gap:14px;align-items:center}.pick>div:last-child{flex:1;min-width:0}
+
+.alert{border-radius:14px;padding:11px 14px;font-size:.86rem;background:var(--k0bg);color:var(--k0fg)}
+.alert.info{background:var(--k2bg);color:var(--k2fg)}.alert b{display:block;margin-bottom:2px}
+.crit{display:grid;grid-template-columns:minmax(0,1fr) 96px;gap:4px 12px;align-items:center;padding:10px 0;border-bottom:1px dashed var(--line)}
+.crit:last-of-type{border-bottom:0}
+.crit .nm{font-weight:600;color:var(--navy)}.crit .ds{font-size:.78rem;color:var(--muted)}
+.crit input{grid-column:2;grid-row:1/3;text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+.sumbar{position:sticky;bottom:calc(78px + env(safe-area-inset-bottom,0px));z-index:5;display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:10px 12px;box-shadow:0 8px 26px rgba(52,84,245,.22);margin-top:14px}
+.sumin{display:flex;gap:16px;flex:1;align-items:center;flex-wrap:wrap}.sumin div{line-height:1.2}.sumin small{display:block;font-size:.68rem;color:var(--muted)}.sumin b{font:700 1.05rem var(--display);color:var(--navy);font-variant-numeric:tabular-nums}
+.bar{height:6px;border-radius:99px;background:var(--soft);overflow:hidden;margin-top:4px;min-width:90px}.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--blue),var(--pink));border-radius:99px;transition:width .2s}
+.pill{display:inline-block;border-radius:999px;padding:2px 11px;font-size:.76rem;font-weight:700}
+.pill.ok{background:var(--k3bg);color:var(--k3fg)}.pill.bad{background:var(--k0bg);color:var(--k0fg)}
+
+.k0{--kbg:var(--k0bg);--kfg:var(--k0fg)}.k1{--kbg:var(--k1bg);--kfg:var(--k1fg)}.k2{--kbg:var(--k2bg);--kfg:var(--k2fg)}.k3{--kbg:var(--k3bg);--kfg:var(--k3fg)}.k4{--kbg:var(--k4bg);--kfg:var(--k4fg)}
+.tag{display:inline-block;background:var(--kbg,var(--soft));color:var(--kfg,var(--navy));border-radius:10px;padding:2px 9px;font-size:.72rem;font-weight:600;margin-top:6px}
+.stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.tile{border-radius:16px;padding:10px 12px;background:var(--kbg);color:var(--kfg)}
+.tile span{font-size:.72rem;display:block;opacity:.85}.tile b{font:700 1.35rem var(--display);font-variant-numeric:tabular-nums}
+.hof-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.hof{background:var(--surface);border:1px solid var(--line);border-radius:20px;overflow:hidden;box-shadow:var(--shadow);transition:.15s}
+.hof:hover{transform:translateY(-3px);box-shadow:0 12px 28px rgba(232,21,127,.2)}
+.hof .ph{position:relative;aspect-ratio:1/1}.hof .ph .avatar{border-radius:0;aspect-ratio:auto;height:100%;font-size:2.6rem}
+.hof .badge{position:absolute;top:8px;right:8px;background:var(--surface);color:var(--pink);font:700 .78rem var(--display);padding:2px 10px;border-radius:999px;box-shadow:0 2px 8px rgba(0,0,0,.18)}
+.hof .medal{position:absolute;top:6px;left:8px;font-size:1.6rem;filter:drop-shadow(0 2px 3px rgba(0,0,0,.3))}
+.hof .bd{padding:10px 12px 12px}.hof .nm{font:600 .92rem var(--display);color:var(--navy)}
+.yr{color:var(--blue);font-weight:600;font-size:.78rem;margin-top:5px}
+.rep{color:var(--k0fg);background:var(--k0bg);display:inline-block;border-radius:8px;padding:1px 8px;font-weight:700;font-size:.72rem;margin-top:5px}
+.list{display:flex;flex-direction:column;gap:10px}
+.item{display:flex;gap:12px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:10px 12px}
+.item .info{flex:1;min-width:0}.item .info b{color:var(--navy)}
+.actions{display:flex;gap:8px;flex-wrap:wrap}
+details{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:10px 14px}
+details summary{cursor:pointer;font-weight:600;color:var(--navy)}details[open] summary{margin-bottom:10px}
+table{width:100%;border-collapse:collapse;font-size:.86rem;font-variant-numeric:tabular-nums}
+th,td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left}td.r,th.r{text-align:right}
+.tablewrap{overflow-x:auto;border:1px solid var(--line);border-radius:16px;background:var(--surface)}
+.sumtbl{min-width:560px}.sumtbl th,.sumtbl td{vertical-align:top;padding:9px 10px}
+.sumtbl thead th{background:var(--soft);color:var(--navy);font-size:.78rem}
+.sumtbl tbody th{white-space:nowrap;color:var(--navy);font-family:var(--display)}.sumtbl td div+div{margin-top:3px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.chip{display:inline-flex;gap:6px;align-items:center;background:var(--kbg);color:var(--kfg);border-radius:999px;padding:4px 6px 4px 13px;font-size:.85rem;font-weight:600}
+.chip button{border:0;background:transparent;color:inherit;cursor:pointer;font-size:1rem;line-height:1;padding:2px 6px;opacity:.7}
+.empty{text-align:center;padding:28px 16px;color:var(--muted);border:2px dashed var(--line);border-radius:20px}
+.empty .big{font-size:2.4rem;display:block;margin-bottom:4px}
+.toast{position:fixed;left:50%;bottom:calc(88px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--navy);color:var(--bg);padding:10px 18px;border-radius:14px;font-weight:600;z-index:20;box-shadow:0 8px 24px rgba(0,0,0,.3);max-width:calc(100vw - 32px);text-align:center}
+#confetti{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:30}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+
+/* ---- PWA banners ---- */
+.pwa-bar{position:fixed;left:0;right:0;bottom:calc(80px + env(safe-area-inset-bottom,0px));z-index:25;display:flex;justify-content:center;padding-inline:max(12px,env(safe-area-inset-left,0px)) max(12px,env(safe-area-inset-right,0px));pointer-events:none}
+.pwa-card{pointer-events:auto;width:100%;max-width:560px;display:flex;gap:12px;align-items:center;background:var(--surface);border:1.5px solid var(--line);border-radius:20px;padding:12px 14px;box-shadow:0 14px 36px rgba(52,84,245,.3)}
+.pwa-card img{width:48px;height:48px;border-radius:12px;flex:none}
+.pwa-card .tx{flex:1;min-width:0;font-size:.84rem;line-height:1.4}.pwa-card .tx b{display:block;font:600 .95rem var(--display);color:var(--navy)}
+.pwa-card .bt{display:flex;flex-direction:column;gap:6px}
+.pwa-card .bt .btn{white-space:nowrap}
+@media(max-width:420px){.pwa-card{flex-wrap:wrap}.pwa-card .bt{flex-direction:row;width:100%}.pwa-card .bt .btn{flex:1}}
+</style>
+</head>
+<body>
+
+
+<div class="wrap">
+  <header class="hero">
+    <span class="deco emo" aria-hidden="true">🎓</span><span class="deco b emo" aria-hidden="true">⭐</span>
+    <div class="mark emo" aria-hidden="true">🏆</div>
+    <div><h1>ทำเนียบครูดีเด่น</h1><p>ยกย่องคุณครูผู้สร้างแรงบันดาลใจ ✨</p></div>
+    <div class="yearchip" id="yearchip"></div>
+  </header>
+  <div id="demo"></div>
+  <main id="view"></main>
+</div>
+<nav class="bnav" role="tablist" id="tabs" aria-label="เมนูหลัก"></nav>
+<div id="toast" class="toast" hidden></div>
+<canvas id="confetti" hidden></canvas>
+
+<script>
+const TABS=[["hall","ทำเนียบ","🏆"],["eval","ประเมิน","✍️"],["teachers","ครู","👩‍🏫"],["rules","ตั้งค่า","⚙️"]];
+const KEY="teacher-hall-of-fame-v1";
+const CY=(()=>{const d=new Date();return d.getFullYear()+543-(d.getMonth()<4?1:0)})();
+let memStore=null;
+const uid=()=>Math.random().toString(36).slice(2,10);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const $=s=>document.querySelector(s);
+const fmt=n=>Number(n).toLocaleString("th-TH",{maximumFractionDigits:2});
+const hash=s=>[...String(s)].reduce((a,c)=>(a*31+c.charCodeAt(0))>>>0,7);
+const curYear=()=>S.curYear||CY;
+
+const CRIT_EMO=["📈","💡","🤝","📖","🌟"];
+function seed(){
+  const crit=[["ผลสัมฤทธิ์ของผู้เรียน",30,"นักเรียนเก่งขึ้นแค่ไหน ดูจากผลเรียนและพัฒนาการ"],
+    ["นวัตกรรมและการจัดการเรียนรู้",25,"สื่อ วิธีสอน หรือไอเดียใหม่ที่ใช้จริงในห้องเรียน"],
+    ["การดูแลช่วยเหลือนักเรียน",20,"ใส่ใจ ให้คำปรึกษา และช่วยแก้ปัญหานักเรียนรายคน"],
+    ["การพัฒนาตนเองและวิชาชีพ",15,"อบรม ทำผลงานวิชาการ เป็นแบบอย่างให้เพื่อนครู"],
+    ["คุณธรรม จริยธรรม และวินัย",10,"ความประพฤติ ความรับผิดชอบ การมาปฏิบัติหน้าที่"]].map(([name,max,desc],i)=>({id:uid(),name,max,desc,active:true,e:CRIT_EMO[i]}));
+  const cats=["ครูดีเด่นด้านนวัตกรรม","ครูดีเด่นด้านดูแลนักเรียน","ครูดีเด่นดาวรุ่ง"];
+  const names=[["ครูสมใจ รักเรียน","วิทย์-คณิต"],["ครูวิไล ใจดี","ภาษาต่างประเทศ"],["ครูประสิทธิ์ ศรีสุข","เทคโนโลยี"],["ครูนภา แสงทอง","สังคม-ภาษาไทย"]];
+  const teachers=names.map(([name,dept])=>({id:uid(),name,dept,photo:"",demo:true}));
+  const mk=(t,year,cat,pct)=>({id:uid(),tid:teachers[t].id,year,cat,pct,note:"",scores:crit.map(c=>({n:c.name,s:+(c.max*pct/100).toFixed(1),m:c.max}))});
+  return {v:3,teachers,criteria:crit,categories:cats,curYear:null,
+    departments:["วิทย์-คณิต","ภาษาต่างประเทศ","สังคม-ภาษาไทย","ศิลปะ-พละ","เทคโนโลยี"],pass:80,
+    evals:[mk(0,CY-2,cats[0],92),mk(1,CY-2,cats[1],88),mk(2,CY-1,cats[2],85),mk(1,CY-1,cats[0],90),mk(3,CY-1,cats[0],74),
+      mk(0,CY,cats[1],89),mk(2,CY,cats[0],86),mk(3,CY,cats[2],82),mk(1,CY,cats[0],81)],demo:true};
+}
+function normalize(j){j.curYear=j.curYear||null;j.criteria.forEach((c,i)=>{if(!c.e)c.e=CRIT_EMO[i]||"✨"});j.v=3;return j}
+function load(){
+  try{const r=localStorage.getItem(KEY);if(r){const j=JSON.parse(r);if(!j.demo||j.v>=2)return normalize(j)}}catch(e){}
+  return memStore?normalize(JSON.parse(memStore)):seed();
+}
+let S=load();
+function save(){const j=JSON.stringify(S);memStore=j;try{localStorage.setItem(KEY,j)}catch(e){toast("เก็บข้อมูลในเบราว์เซอร์ไม่ได้ ข้อมูลจะหายเมื่อปิดหน้านี้")}}
+function toast(m){const t=$("#toast");t.textContent=m;t.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>t.hidden=true,2600)}
+
+let tab=(location.hash||"#hall").slice(1);if(!TABS.some(t=>t[0]===tab))tab="hall";
+const ui={sub:{hall:"now",teachers:"list",rules:"pass"},tid:null,year:null,cat:null,hq:"",hy:"all",q:"",draft:{},note:""};
+
+const teacher=id=>S.teachers.find(t=>t.id===id);
+const initials=n=>{const p=n.replace(/^(ครู|อาจารย์|นาย|นางสาว|นาง)\s*/,"").trim();return p?[...p][0]:"?"};
+const avatar=(t,cls="")=>t&&t.photo?`<img class="avatar ${cls}" src="${t.photo}" alt="${esc(t.name)}">`:`<div class="avatar g${hash(t?t.name:"?")%5} ${cls}" aria-hidden="true">${esc(initials(t?t.name:"?"))}</div>`;
+const activeCrit=()=>S.criteria.filter(c=>c.active);
+const kc=c=>"k"+(hash(c)%5);
+function catEmoji(c){if(/นวัตกรรม/.test(c))return"💡";if(/ดูแล|นักเรียน/.test(c))return"🤗";if(/ดาวรุ่ง/.test(c))return"🚀";return["🏅","🌈","🎖️","🌻","🦋"][hash(c)%5]}
+function deptEmoji(d){if(/วิทย์|คณิต/.test(d))return"🔬";if(/ภาษาต่าง|อังกฤษ/.test(d))return"🌏";if(/สังคม|ไทย/.test(d))return"📚";if(/ศิลป|พละ|ดนตรี/.test(d))return"🎨";if(/เทคโน|คอม/.test(d))return"💻";return"🎓"}
+const tag=c=>`<span class="tag ${kc(c)}">${catEmoji(c)} ${esc(c)}</span>`;
+const repeatYears=e=>S.evals.filter(x=>x.tid===e.tid&&x.cat===e.cat&&x.year<e.year&&x.pct>=S.pass).map(x=>x.year).sort();
+const winnersAll=()=>S.evals.filter(e=>e.pct>=S.pass).sort((a,b)=>b.year-a.year||b.pct-a.pct);
+const seg=(k,opts)=>`<div class="seg" role="tablist">${opts.map(([v,l])=>`<button role="tab" aria-selected="${ui.sub[k]===v}" data-sub="${k}:${v}">${l}</button>`).join("")}</div>`;
+
+function readPhoto(file){return new Promise((res,rej)=>{
+  const fr=new FileReader();fr.onerror=rej;
+  fr.onload=()=>{const im=new Image();im.onerror=rej;im.onload=()=>{
+    const m=360,k=Math.min(1,m/Math.max(im.width,im.height)),c=document.createElement("canvas");
+    c.width=Math.round(im.width*k);c.height=Math.round(im.height*k);
+    c.getContext("2d").drawImage(im,0,0,c.width,c.height);res(c.toDataURL("image/jpeg",.82))};im.src=fr.result};
+  fr.readAsDataURL(file)})}
+
+function confetti(){
+  if(matchMedia("(prefers-reduced-motion:reduce)").matches)return;
+  const cv=$("#confetti"),cx=cv.getContext("2d");cv.hidden=false;cv.width=innerWidth;cv.height=innerHeight;
+  const cols=["#FF4DA6","#3454F5","#FFC93C","#2FD6A0","#9B6BFF","#12A8E8"];
+  const ps=Array.from({length:90},()=>({x:innerWidth/2,y:innerHeight*.6,vx:(Math.random()-.5)*14,vy:-Math.random()*14-4,r:Math.random()*6+3,c:cols[Math.random()*6|0],a:Math.random()*6}));
+  let f=0;(function step(){cx.clearRect(0,0,cv.width,cv.height);ps.forEach(p=>{p.vy+=.35;p.x+=p.vx;p.y+=p.vy;p.a+=.2;cx.fillStyle=p.c;cx.save();cx.translate(p.x,p.y);cx.rotate(p.a);cx.fillRect(-p.r,-p.r/2,p.r*2,p.r);cx.restore()});
+    if(++f<110)requestAnimationFrame(step);else{cx.clearRect(0,0,cv.width,cv.height);cv.hidden=true}})();
+}
+
+function render(){
+  $("#tabs").innerHTML=TABS.map(([k,l,i])=>`<button role="tab" aria-selected="${k===tab}" data-tab="${k}"><span class="ic emo">${i}</span><span>${l}</span></button>`).join("");
+  $("#yearchip").innerHTML=`<span>ปีการศึกษา</span><b>${curYear()}</b>`;
+  $("#demo").innerHTML=S.demo?`<div class="notice"><span class="emo">🎈</span><span>ตอนนี้เป็นข้อมูลตัวอย่าง พร้อมใช้งานจริงเมื่อไหร่ กดล้างได้เลย</span><button class="btn sm primary" data-act="clear-demo">ล้างข้อมูลตัวอย่าง</button></div>`:"";
+  ({eval:vEval,hall:vHall,teachers:vTeachers,rules:vRules})[tab]();
+}
+
+/* ---------- ประเมิน ---------- */
+function vEval(){
+  const crit=activeCrit();
+  if(!ui.year)ui.year=curYear();
+  if(!S.teachers.length)return $("#view").innerHTML=`<div class="empty"><span class="big emo">👩‍🏫</span>ยังไม่มีรายชื่อครูให้ประเมิน<br><button class="btn primary" style="margin-top:12px" data-goto="teachers:add">➕ เพิ่มครูคนแรก</button></div>`;
+  if(!crit.length||!S.categories.length)return $("#view").innerHTML=`<div class="empty"><span class="big emo">📝</span>ต้องมีหัวข้อประเมินและหมวดรางวัลอย่างน้อยอย่างละ 1 รายการ<br><button class="btn primary" style="margin-top:12px" data-goto="rules:crit">ไปตั้งค่า</button></div>`;
+  if(!teacher(ui.tid))ui.tid=S.teachers[0].id;
+  if(!S.categories.includes(ui.cat))ui.cat=S.categories[0];
+  const t=teacher(ui.tid);
+  $("#view").innerHTML=`<h2>✍️ ให้คะแนนคุณครู</h2>
+  <div class="card stack">
+    <div class="pick">${avatar(t,"m")}<div><label for="f-t">เลือกครูที่จะประเมิน</label><select id="f-t">${S.teachers.map(x=>`<option value="${x.id}" ${x.id===ui.tid?"selected":""}>${esc(x.name)}</option>`).join("")}</select><div class="muted small" style="margin-top:4px">${deptEmoji(t.dept)} ${esc(t.dept)}</div></div></div>
+    <div class="row"><div><label for="f-y">📅 ปีการศึกษา</label><input id="f-y" type="number" min="2560" max="2700" value="${ui.year}"></div>
+    <div><label for="f-c">🏅 หมวดรางวัล</label><select id="f-c">${S.categories.map(c=>`<option ${c===ui.cat?"selected":""}>${esc(c)}</option>`).join("")}</select></div></div>
+    <div id="dup"></div></div>
+  <div class="card" style="margin-top:12px"><h3>🎯 คะแนนแต่ละด้าน</h3>
+    ${crit.map(c=>`<div class="crit"><div class="nm"><span class="emo">${esc(c.e||"✨")}</span> ${esc(c.name)} <span class="muted small">เต็ม ${fmt(c.max)}</span></div>
+      <div class="ds">${esc(c.desc||"")}</div>
+      <input type="number" inputmode="decimal" min="0" max="${c.max}" step="0.5" data-score="${c.id}" aria-label="คะแนน ${esc(c.name)}" value="${ui.draft[c.id]??""}" placeholder="0"></div>`).join("")}
+    <div style="margin-top:12px"><label for="f-n">💬 ความเห็นกรรมการ (ไม่บังคับ)</label><textarea id="f-n">${esc(ui.note)}</textarea></div></div>
+  <div class="sumbar"><div class="sumin" id="sum"></div><button class="btn primary" data-act="save-eval">💾 บันทึก</button></div>`;
+  updSum();updDup();
+}
+function calc(){const crit=activeCrit();let s=0,m=0,any=false;
+  crit.forEach(c=>{const raw=ui.draft[c.id];if(raw!==undefined&&raw!=="")any=true;const v=Math.min(c.max,Math.max(0,parseFloat(raw)||0));s+=v;m+=c.max});
+  return {s,m,any,pct:m?Math.round(s/m*10000)/100:0}}
+function updSum(){const {s,m,pct}=calc(),ok=pct>=S.pass;
+  $("#sum").innerHTML=`<div><small>คะแนนรวม</small><b>${fmt(s)}/${fmt(m)}</b></div><div><small>ร้อยละ</small><b>${fmt(pct)}%</b><div class="bar"><i style="width:${Math.min(100,pct)}%"></i></div></div><div><small>เกณฑ์ ${fmt(S.pass)}</small><span class="pill ${ok?"ok":"bad"}">${ok?"🎉 ผ่าน":"ยังไม่ผ่าน"}</span></div>`}
+function updDup(){
+  const yr=+ui.year,won=S.evals.filter(e=>e.tid===ui.tid&&e.pct>=S.pass&&e.year!==yr);
+  const same=won.filter(e=>e.cat===ui.cat).map(e=>e.year).sort();
+  const thisYear=S.evals.filter(e=>e.tid===ui.tid&&e.pct>=S.pass&&e.year===yr&&e.cat!==ui.cat).map(e=>e.cat);
+  const wonCats=new Set(won.map(e=>e.cat)),fresh=S.categories.filter(c=>!wonCats.has(c)&&c!==ui.cat);
+  let h="";
+  if(same.length)h+=`<div class="alert"><b class="emo">⚠️ ${same.includes(yr-1)?"ได้ตำแหน่งนี้ติดต่อกันแล้วนะ":"ตำแหน่งซ้ำนะ!"}</b>เคยได้ “${esc(ui.cat)}” ปีการศึกษา ${same.join(", ")} ตำแหน่งควรหมุนเวียนทุกปี ลองพิจารณาหมวดอื่นดู${fresh.length?`<br>💡 หมวดที่ยังไม่เคยได้: <b style="display:inline">${fresh.map(esc).join(", ")}</b>`:""}</div>`;
+  if(thisYear.length)h+=`<div class="alert info" style="margin-top:8px"><b class="emo">ℹ️ ได้รางวัลปีนี้แล้ว</b>ปี ${yr} ครูท่านนี้ผ่านเกณฑ์ ${thisYear.map(x=>"“"+esc(x)+"”").join(", ")} ไปแล้ว</div>`;
+  $("#dup").innerHTML=h}
+
+/* ---------- ทำเนียบ ---------- */
+const MEDAL=["🥇","🥈","🥉"];
+function hofCard(e,rank){const t=teacher(e.tid),rp=repeatYears(e);
+  return `<article class="hof"><div class="ph">${avatar(t)}<span class="badge">${fmt(e.pct)}</span>${rank!=null&&rank<3?`<span class="medal emo">${MEDAL[rank]}</span>`:""}</div>
+  <div class="bd"><div class="nm">${esc(t?.name||"")}</div><div class="muted small">${deptEmoji(t?.dept||"")} ${esc(t?.dept||"")}</div>${tag(e.cat)}
+  <div class="yr">📅 ปี ${e.year}</div>${rp.length?`<div class="rep emo">⚠️ ซ้ำตำแหน่ง ปี ${rp.join(", ")}</div>`:""}</div></article>`}
+function hallRes(){
+  const q=ui.hq.trim().toLowerCase();
+  const v=winnersAll().filter(e=>{const t=teacher(e.tid);return (ui.hy==="all"||e.year==ui.hy)&&(!q||[t?.name,t?.dept,e.cat,e.year].join(" ").toLowerCase().includes(q))});
+  $("#hres").innerHTML=v.length?`<p class="muted small">🔎 พบ ${v.length} รายการ</p><div class="hof-grid">${v.map(e=>hofCard(e)).join("")}</div>`:`<div class="empty"><span class="big emo">🔍</span>ไม่พบครูดีเด่นตามที่ค้นหา ลองคำอื่นดูนะ</div>`}
+function vHall(){
+  const W=winnersAll(),hist=[...S.evals].sort((a,b)=>b.year-a.year||b.pct-a.pct),k=ui.sub.hall,cy=curYear();
+  const years=[...new Set([cy,...W.map(e=>e.year)])].sort((a,b)=>b-a);
+  let body="";
+  if(k==="now"){const cur=W.filter(e=>e.year===cy);
+    body=`<div class="stat-row"><div class="tile k1"><span>📅 ปีการศึกษา</span><b>${cy}</b></div><div class="tile k3"><span>🏆 ครูดีเด่น</span><b>${cur.length}</b></div><div class="tile k0"><span>⚠️ ซ้ำตำแหน่ง</span><b>${cur.filter(e=>repeatYears(e).length).length}</b></div></div>
+    ${cur.length?`<div class="hof-grid">${cur.map((e,i)=>hofCard(e,i)).join("")}</div>`:`<div class="empty"><span class="big emo">🎈</span>ปีการศึกษา ${cy} ยังไม่มีครูดีเด่น<br><button class="btn primary" style="margin-top:12px" data-tab="eval">✍️ ไปประเมินครู</button></div>`}`}
+  if(k==="search")body=`<div class="row" style="margin-bottom:10px"><div style="flex:2"><label for="hq">🔎 ค้นหาชื่อครู กลุ่มสาระ หรือหมวดรางวัล</label><input id="hq" type="search" placeholder="เช่น สมใจ หรือ นวัตกรรม" value="${esc(ui.hq)}"></div>
+    <div style="flex:1"><label for="hy">📅 ปีการศึกษา</label><select id="hy"><option value="all">ทุกปี</option>${years.map(y=>`<option ${y==ui.hy?"selected":""}>${y}</option>`).join("")}</select></div></div><div id="hres"></div>`;
+  if(k==="table")body=`<p class="muted small" style="margin-top:0">📊 ใครได้ตำแหน่งอะไรในแต่ละปี &nbsp;⚠️ = ได้ตำแหน่งเดิมซ้ำกับปีก่อน ๆ</p>
+    <div class="tablewrap"><table class="sumtbl"><thead><tr><th>ปี</th>${S.categories.map(c=>`<th>${catEmoji(c)} ${esc(c)}</th>`).join("")}<th class="r">รวม</th></tr></thead><tbody>
+    ${years.map(y=>{const ws=W.filter(e=>e.year===y);return `<tr><th scope="row">${y}${y===cy?' <span class="pill ok">ปีนี้</span>':""}</th>${S.categories.map(c=>{const cell=ws.filter(e=>e.cat===c);
+      return `<td>${cell.length?cell.map(e=>`<div>${esc(teacher(e.tid)?.name||"")}${repeatYears(e).length?' <span class="emo" title="ซ้ำตำแหน่ง">⚠️</span>':""}</div>`).join(""):'<span class="muted">–</span>'}</td>`}).join("")}<td class="r"><b>${ws.length}</b></td></tr>`}).join("")}
+    </tbody></table></div>`;
+  if(k==="hist")body=`<div class="list">${hist.length?hist.map(e=>{const t=teacher(e.tid),ok=e.pct>=S.pass;return `<details><summary>${esc(t?.name||"")} · ปี ${e.year} · ${fmt(e.pct)} <span class="pill ${ok?"ok":"bad"}">${ok?"🎉 ผ่าน":"ไม่ผ่าน"}</span></summary>
+    <div style="margin-bottom:8px">${tag(e.cat)}</div>
+    <div style="overflow-x:auto"><table><tr><th>หัวข้อ</th><th class="r">ได้</th><th class="r">เต็ม</th></tr>${e.scores.map(x=>`<tr><td>${esc(x.n)}</td><td class="r">${fmt(x.s)}</td><td class="r">${fmt(x.m)}</td></tr>`).join("")}</table></div>
+    ${e.note?`<p class="small muted">💬 ${esc(e.note)}</p>`:""}
+    <div style="margin-top:10px"><button class="btn danger sm" data-confirm="del-eval" data-id="${e.id}">🗑️ ลบผลประเมินนี้</button></div></details>`}).join(""):`<div class="empty"><span class="big emo">🕘</span>ยังไม่มีประวัติการประเมิน</div>`}</div>`;
+  $("#view").innerHTML=`<h2>🏆 ทำเนียบครูดีเด่น</h2>${seg("hall",[["now","🌟 ปีนี้"],["search","🔎 ค้นหา"],["table","📊 สรุปรายปี"],["hist","🕘 ประวัติ"]])}${body}`;
+  if(k==="search")hallRes();
+}
+
+/* ---------- ครู ---------- */
+function vTeachers(){
+  const ts=S.teachers.filter(t=>!ui.q||t.name.toLowerCase().includes(ui.q.toLowerCase())).sort((a,b)=>a.name.localeCompare(b.name,"th"));
+  let body;
+  if(ui.sub.teachers==="add"){
+    body=`<form class="card stack" id="add-t" autocomplete="off">
+    <div style="display:flex;gap:14px;align-items:center"><img id="a-prev" class="avatar m" alt="" hidden><div style="flex:1;min-width:0"><label for="a-p">📸 รูปภาพครู (ไม่บังคับ)</label><input id="a-p" type="file" accept="image/*"></div></div>
+    <div><label for="a-n">👩‍🏫 ชื่อ-นามสกุล</label><input id="a-n" required></div>
+    <div><label for="a-d">🏫 กลุ่มสาระ</label><select id="a-d">${S.departments.map(d=>`<option>${esc(d)}</option>`).join("")}</select></div>
+    <div><button class="btn primary">➕ เพิ่มครู</button></div></form>`;
+  }else{
+    body=`${S.teachers.length?`<div style="margin-bottom:12px"><label for="t-q">🔎 ค้นหาชื่อครู</label><input id="t-q" type="search" value="${esc(ui.q)}"></div>`:""}
+    <div class="list">${ts.length?ts.map(t=>{const n=S.evals.filter(e=>e.tid===t.id&&e.pct>=S.pass).length;return `<div class="item">${avatar(t,"s")}<div class="info"><b>${esc(t.name)}</b><div class="muted small">${deptEmoji(t.dept)} ${esc(t.dept)}${n?` · 🏆 ${n} ครั้ง`:""}</div></div>
+    <div class="actions"><button class="btn sm" data-act="edit-t" data-id="${t.id}">✏️</button><button class="btn danger sm" data-confirm="del-t" data-id="${t.id}">🗑️</button></div></div>
+    <form class="card stack" data-edit="${t.id}" hidden><div><label>ชื่อ-นามสกุล</label><input name="n" value="${esc(t.name)}" required></div>
+    <div><label>กลุ่มสาระ</label><select name="d">${(S.departments.includes(t.dept)?S.departments:[...S.departments,t.dept]).map(d=>`<option ${d===t.dept?"selected":""}>${esc(d)}</option>`).join("")}</select></div>
+    <div><label>เปลี่ยนรูปภาพ</label><input name="p" type="file" accept="image/*"></div>${t.photo?`<label style="display:flex;gap:8px;align-items:center;margin:0"><input type="checkbox" name="r"> ลบรูปเดิม</label>`:""}
+    <div class="actions"><button class="btn primary sm">💾 บันทึก</button><button type="button" class="btn sm" data-act="edit-t" data-id="${t.id}">ยกเลิก</button></div></form>`}).join(""):`<div class="empty"><span class="big emo">👩‍🏫</span>ยังไม่มีรายชื่อครู<br><button class="btn primary" style="margin-top:12px" data-goto="teachers:add">➕ เพิ่มครู</button></div>`}</div>`;
+  }
+  $("#view").innerHTML=`<h2>👩‍🏫 คุณครูของเรา</h2>${seg("teachers",[["list",`📋 รายชื่อ (${S.teachers.length})`],["add","➕ เพิ่มครู"]])}${body}`;
+}
+
+/* ---------- ตั้งค่า ---------- */
+function vRules(){
+  const tot=activeCrit().reduce((a,c)=>a+c.max,0),k=ui.sub.rules;let body="";
+  if(k==="pass")body=`<div class="card stack"><h3>🎯 คะแนนผ่านเข้าทำเนียบ</h3><p class="muted small" style="margin:0">ครูที่ได้คะแนนร้อยละเท่านี้หรือมากกว่า จะได้ขึ้นทำเนียบ</p>
+    <div class="row"><div><label for="r-p">คะแนนผ่านขั้นต่ำ (ร้อยละ)</label><input id="r-p" type="number" min="0" max="100" step="1" value="${S.pass}"></div>
+    <div><label for="r-y">📅 ปีการศึกษาปัจจุบัน</label><input id="r-y" type="number" min="2560" max="2700" value="${curYear()}"></div></div>
+    <p class="muted small" style="margin:0">ปีการศึกษาคำนวณให้อัตโนมัติ (เริ่มพฤษภาคม) ปรับเองได้ถ้าโรงเรียนใช้ช่วงเวลาอื่น ${S.curYear?`<button class="btn sm" data-act="auto-year" style="margin-left:6px">กลับไปอัตโนมัติ</button>`:""}</p></div>`;
+  if(k==="crit")body=`<p class="muted small" style="margin-top:0">คะแนนเต็มรวมของหัวข้อที่เปิดใช้ = <b>${fmt(tot)}</b> ระบบแปลงเป็นร้อยละเต็ม 100 ให้เอง และการแก้ไขมีผลกับการประเมินครั้งต่อไปเท่านั้น</p>
+    <div class="list">${S.criteria.map(c=>`<div class="card stack" data-crit="${c.id}">
+      <div class="row"><div style="flex:0 0 70px;min-width:70px"><label>ไอคอน</label><input data-f="e" value="${esc(c.e||"")}" maxlength="4" style="text-align:center;font-size:1.2rem"></div><div style="flex:3"><label>ชื่อหัวข้อ</label><input data-f="name" value="${esc(c.name)}"></div><div style="flex:1;min-width:90px"><label>คะแนนเต็ม</label><input data-f="max" type="number" min="1" value="${c.max}"></div></div>
+      <div><label>คำอธิบาย</label><input data-f="desc" value="${esc(c.desc||"")}"></div>
+      <div class="actions" style="justify-content:space-between"><label style="display:flex;gap:6px;align-items:center;margin:0"><input type="checkbox" data-f="active" ${c.active?"checked":""}> ใช้งานหัวข้อนี้</label><button class="btn danger sm" data-confirm="del-crit" data-id="${c.id}">🗑️ ลบ</button></div></div>`).join("")}</div>
+    <form id="add-c" class="card stack" style="margin-top:12px"><h3>➕ เพิ่มหัวข้อใหม่</h3>
+      <div class="row"><div style="flex:3"><label for="c-n">ชื่อหัวข้อ</label><input id="c-n" required></div><div style="flex:1;min-width:90px"><label for="c-m">คะแนนเต็ม</label><input id="c-m" type="number" min="1" value="10"></div></div>
+      <div><label for="c-d">คำอธิบาย</label><input id="c-d"></div><div><button class="btn primary">เพิ่มหัวข้อ</button></div></form>`;
+  if(k==="cat")body=`<div class="card"><h3>🏅 หมวดหมู่รางวัล</h3><div class="chips">${S.categories.map((c,i)=>`<span class="chip ${kc(c)}">${catEmoji(c)} ${esc(c)}<button aria-label="ลบ ${esc(c)}" data-act="del-cat" data-i="${i}">×</button></span>`).join("")||'<span class="muted">ยังไม่มีหมวดหมู่</span>'}</div>
+    <form id="add-cat" class="row"><input id="k-n" placeholder="ชื่อหมวดรางวัลใหม่" aria-label="ชื่อหมวดรางวัลใหม่" style="flex:3" required><button class="btn primary" style="flex:1">เพิ่ม</button></form></div>`;
+  if(k==="dept")body=`<div class="card"><h3>🏫 กลุ่มสาระการเรียนรู้</h3><label for="r-d">หนึ่งบรรทัดต่อหนึ่งกลุ่มสาระ</label><textarea id="r-d" rows="7">${esc(S.departments.join("\n"))}</textarea><p class="muted small" style="margin-bottom:0">บันทึกอัตโนมัติเมื่อแก้เสร็จ</p></div>`;
+  if(k==="data")body=`${window.hofInstall?`<div class="card stack" style="margin-bottom:12px"><h3>📲 ติดตั้งแอปลงหน้าจอโฮม</h3><p class="muted small" style="margin:0">เปิดได้เหมือนแอปทั่วไป ใช้งานออฟไลน์ได้ และอัปเดตให้อัตโนมัติ</p><div><button class="btn primary" data-act="install">📲 ติดตั้งแอป</button></div></div>`:""}<div class="card stack"><h3>💾 สำรองข้อมูล</h3><p class="muted small" style="margin:0">ข้อมูลเก็บไว้ในเครื่องนี้เท่านั้น แนะนำให้สำรองไว้เป็นระยะ หรือใช้ย้ายไปเครื่องอื่น</p>
+    <div class="actions"><button class="btn primary" data-act="export-dl">⬇️ ดาวน์โหลดไฟล์สำรอง</button><button class="btn" data-act="export-copy">📋 คัดลอกข้อมูล</button></div></div>
+    <div class="card stack" style="margin-top:12px"><h3>📥 นำเข้าข้อมูล</h3>
+      <div><label for="imp-f">เลือกไฟล์สำรอง (.json)</label><input id="imp-f" type="file" accept=".json,application/json"></div>
+      <div><label for="imp">หรือวางข้อมูลที่คัดลอกไว้</label><textarea id="imp" rows="4" placeholder="วางข้อมูลสำรองที่นี่"></textarea></div>
+      <div><button class="btn danger" data-confirm="import">นำเข้า (แทนที่ข้อมูลปัจจุบัน)</button></div></div>
+    <div class="card stack" style="margin-top:12px"><h3>🧹 เริ่มใหม่</h3><p class="muted small" style="margin:0">ลบครู ผลประเมิน และการตั้งค่าทั้งหมดในเครื่องนี้</p><div><button class="btn danger" data-confirm="reset">ล้างข้อมูลทั้งหมด</button></div></div>`;
+  $("#view").innerHTML=`<h2>⚙️ ตั้งค่า</h2>${seg("rules",[["pass","🎯 เกณฑ์"],["crit","📝 หัวข้อ"],["cat","🏅 รางวัล"],["dept","🏫 กลุ่มสาระ"],["data","💾 ข้อมูล"]])}${body}`;
+}
+
+/* ---------- events ---------- */
+function download(name,text){const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([text],{type:"application/json"}));a.download=name;document.body.appendChild(a);a.click();a.remove();toast("ถ้าไม่มีไฟล์ขึ้น ให้ใช้ปุ่ม “คัดลอกข้อมูล” แทน")}
+function importData(txt){
+  try{const j=JSON.parse(txt);if(!Array.isArray(j.teachers)||!Array.isArray(j.criteria)||!Array.isArray(j.evals))throw 0;
+    j.categories=j.categories||[];j.departments=j.departments||[];j.pass=j.pass??80;S=normalize(j);S.demo=false;save();render();toast("นำเข้าข้อมูลเรียบร้อย 🎉")}
+  catch(e){toast("ข้อมูลไม่ถูกต้อง ลองใช้ไฟล์ที่สำรองจากแอปนี้")}}
+document.addEventListener("click",async e=>{
+  const tb=e.target.closest("[data-tab]");if(tb){tab=tb.dataset.tab;location.hash=tab;render();scrollTo(0,0);return}
+  const sb=e.target.closest("[data-sub]");if(sb){const [k,v]=sb.dataset.sub.split(":");ui.sub[k]=v;render();return}
+  const gt=e.target.closest("[data-goto]");if(gt){const [k,v]=gt.dataset.goto.split(":");tab=k;ui.sub[k]=v;location.hash=k;render();return}
+  const cf=e.target.closest("[data-confirm]");
+  if(cf){ if(!cf.classList.contains("armed")){cf.classList.add("armed");cf.dataset.t=cf.textContent;cf.textContent="กดอีกครั้งเพื่อยืนยัน";setTimeout(()=>{cf.classList.remove("armed");cf.textContent=cf.dataset.t},3000);return}
+    const id=cf.dataset.id,k=cf.dataset.confirm;
+    if(k==="import")return importData($("#imp").value);
+    if(k==="reset"){S={v:3,teachers:[],criteria:seed().criteria,categories:seed().categories,departments:seed().departments,pass:80,curYear:null,evals:[],demo:false};ui.tid=null;save();render();toast("ล้างข้อมูลทั้งหมดแล้ว");return}
+    if(k==="del-eval")S.evals=S.evals.filter(x=>x.id!==id);
+    if(k==="del-t"){S.teachers=S.teachers.filter(x=>x.id!==id);S.evals=S.evals.filter(x=>x.tid!==id)}
+    if(k==="del-crit")S.criteria=S.criteria.filter(x=>x.id!==id);
+    save();render();toast("ลบแล้ว");return}
+  const a=e.target.closest("[data-act]");if(!a)return;const act=a.dataset.act;
+  if(act==="clear-demo"){S.teachers=S.teachers.filter(t=>!t.demo);const ids=new Set(S.teachers.map(t=>t.id));S.evals=S.evals.filter(x=>ids.has(x.tid));S.demo=false;save();render();toast("ล้างข้อมูลตัวอย่างแล้ว เริ่มเลย! 🚀")}
+  if(act==="save-eval"){
+    const {pct,any}=calc();if(!any)return toast("ยังไม่ได้กรอกคะแนนเลย 😅");
+    const scores=activeCrit().map(c=>({n:c.name,s:Math.min(c.max,Math.max(0,parseFloat(ui.draft[c.id])||0)),m:c.max}));
+    S.evals=S.evals.filter(x=>!(x.tid===ui.tid&&x.year==ui.year&&x.cat===ui.cat));
+    S.evals.push({id:uid(),tid:ui.tid,year:+ui.year,cat:ui.cat,pct,note:ui.note.trim(),scores});
+    ui.draft={};ui.note="";save();render();
+    if(pct>=S.pass){toast(`🎉 ${fmt(pct)} คะแนน ผ่านเกณฑ์เข้าทำเนียบ!`);confetti()}else toast(`บันทึกแล้ว ${fmt(pct)} คะแนน`)}
+  if(act==="edit-t"){const f=document.querySelector(`[data-edit="${a.dataset.id}"]`);f.hidden=!f.hidden}
+  if(act==="del-cat"){S.categories.splice(+a.dataset.i,1);save();render()}
+  if(act==="install"&&window.hofInstall)window.hofInstall();
+  if(act==="auto-year"){S.curYear=null;save();render()}
+  if(act==="export-dl")download(`teacher-hall-of-fame-${new Date().toISOString().slice(0,10)}.json`,JSON.stringify(S));
+  if(act==="export-copy"){const txt=JSON.stringify(S);try{await navigator.clipboard.writeText(txt);toast("คัดลอกข้อมูลแล้ว 📋")}catch(_){const ta=$("#imp");ta.value=txt;ta.select();toast("คัดลอกอัตโนมัติไม่ได้ ข้อมูลอยู่ในช่องด้านล่าง กดคัดลอกเองได้เลย")}}
+});
+document.addEventListener("input",e=>{
+  const t=e.target;
+  if(t.dataset.score){ui.draft[t.dataset.score]=t.value;updSum()}
+  if(t.id==="f-n")ui.note=t.value;
+  if(t.id==="hq"){ui.hq=t.value;hallRes()}
+  if(t.id==="f-y"){ui.year=+t.value||ui.year;updDup()}
+  if(t.id==="t-q"){ui.q=t.value;const p=t.selectionStart;vTeachers();const n=$("#t-q");n.focus();n.setSelectionRange(p,p)}
+});
+document.addEventListener("change",async e=>{
+  const t=e.target;
+  if(t.id==="f-t"){ui.tid=t.value;render()}
+  if(t.id==="f-c"){ui.cat=t.value;updDup()}
+  if(t.id==="hy"){ui.hy=t.value;hallRes()}
+  if(t.id==="r-p"){S.pass=Math.min(100,Math.max(0,+t.value||0));save();toast("บันทึกคะแนนผ่านแล้ว ✅")}
+  if(t.id==="r-y"){const y=+t.value;if(y>=2560){S.curYear=y;save();render();toast("ตั้งปีการศึกษาแล้ว ✅")}}
+  if(t.id==="r-d"){const d=t.value.split("\n").map(x=>x.trim()).filter(Boolean);if(d.length){S.departments=d;save();toast("บันทึกกลุ่มสาระแล้ว ✅")}}
+  if(t.id==="imp-f"&&t.files[0]){$("#imp").value=await t.files[0].text();toast("อ่านไฟล์แล้ว กดนำเข้าได้เลย")}
+  if(t.id==="a-p"){const p=$("#a-prev");if(t.files[0]){try{p.src=await readPhoto(t.files[0]);p.hidden=false}catch(_){toast("อ่านไฟล์รูปไม่ได้")}}else p.hidden=true}
+  const row=t.closest("[data-crit]");
+  if(row&&t.dataset.f){const c=S.criteria.find(x=>x.id===row.dataset.crit),f=t.dataset.f;
+    if(f==="active")c.active=t.checked;else if(f==="max")c.max=Math.max(1,+t.value||1);else if(f==="name"){if(t.value.trim())c.name=t.value.trim()}else if(f==="e")c.e=t.value.trim()||"✨";else c.desc=t.value;
+    save();render();toast("บันทึกแล้ว ✅")}
+});
+document.addEventListener("submit",async e=>{
+  e.preventDefault();const f=e.target;
+  if(f.id==="add-t"){const n=$("#a-n").value.trim();if(!n)return;let photo="";
+    const file=$("#a-p").files[0];if(file){try{photo=await readPhoto(file)}catch(_){return toast("อ่านไฟล์รูปไม่ได้")}}
+    S.teachers.push({id:uid(),name:n,dept:$("#a-d").value,photo});ui.sub.teachers="list";save();render();toast("เพิ่มคุณครูแล้ว 👩‍🏫")}
+  if(f.dataset.edit){const t=teacher(f.dataset.edit);t.name=f.n.value.trim()||t.name;t.dept=f.d.value;
+    if(f.p.files[0]){try{t.photo=await readPhoto(f.p.files[0])}catch(_){return toast("อ่านไฟล์รูปไม่ได้")}}else if(f.r&&f.r.checked)t.photo="";
+    save();render();toast("บันทึกการแก้ไขแล้ว ✅")}
+  if(f.id==="add-c"){S.criteria.push({id:uid(),name:$("#c-n").value.trim(),max:Math.max(1,+$("#c-m").value||10),desc:$("#c-d").value.trim(),active:true,e:"✨"});save();render();toast("เพิ่มหัวข้อแล้ว ✅")}
+  if(f.id==="add-cat"){const n=$("#k-n").value.trim();if(n&&!S.categories.includes(n)){S.categories.push(n);save();render()}}
+});
+addEventListener("hashchange",()=>{const h=location.hash.slice(1);if(TABS.some(t=>t[0]===h)&&h!==tab){tab=h;render()}});
+render();
+</script>
+<script>
+/* PWA: ติดตั้งลงหน้าจอโฮม + แจ้งอัปเดตอัตโนมัติ */
+(function(){
+  if(!/^https?:$/.test(location.protocol)||window.top!==window)return;
+  var DKEY="hof-install-dismissed",ICON="icon-192.png";
+  function safe(f,d){try{return f()}catch(e){return d}}
+  var standalone=matchMedia("(display-mode: standalone)").matches||navigator.standalone===true;
+  var isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
+  var deferred=null;
+
+  function bar(id,html){var old=document.getElementById(id);if(old)old.remove();
+    var d=document.createElement("div");d.className="pwa-bar";d.id=id;d.innerHTML='<div class="pwa-card" role="dialog" aria-live="polite"><img src="'+ICON+'" alt="">'+html+'</div>';document.body.appendChild(d);return d}
+  function hide(id){var e=document.getElementById(id);if(e)e.remove()}
+  function dismissed(){var t=+safe(function(){return localStorage.getItem(DKEY)},0);return t&&Date.now()-t<7*864e5}
+
+  /* ----- ติดตั้งแอป ----- */
+  function showAndroid(){
+    var d=bar("pwa-install",'<div class="tx"><b>📲 ติดตั้งแอปลงหน้าจอโฮม</b>เปิดได้ทันทีเหมือนแอปทั่วไป ใช้ออฟไลน์ได้</div><div class="bt"><button class="btn primary sm" id="pwa-go">ติดตั้ง</button><button class="btn sm" id="pwa-later">ไว้ทีหลัง</button></div>');
+    d.querySelector("#pwa-go").onclick=doInstall;
+    d.querySelector("#pwa-later").onclick=function(){safe(function(){localStorage.setItem(DKEY,Date.now())});hide("pwa-install")};
+  }
+  function showIOS(force){
+    var d=bar("pwa-install",'<div class="tx"><b>📲 ติดตั้งลงหน้าจอโฮม</b>แตะปุ่มแชร์ <span class="emo">⬆️</span> ใน Safari แล้วเลือก “เพิ่มลงในหน้าจอโฮม” <span class="emo">➕</span></div><div class="bt"><button class="btn sm" id="pwa-ok">เข้าใจแล้ว</button></div>');
+    d.querySelector("#pwa-ok").onclick=function(){if(!force)safe(function(){localStorage.setItem(DKEY,Date.now())});hide("pwa-install")};
+  }
+  function doInstall(){
+    if(deferred){deferred.prompt();return deferred.userChoice.then(function(){deferred=null;hide("pwa-install")}).catch(function(){})}
+    if(standalone){return toastMsg("ติดตั้งแอปไว้แล้ว 🎉")}
+    if(isIOS){return showIOS(true)}
+    toastMsg("เปิดเมนูเบราว์เซอร์ แล้วเลือก “ติดตั้งแอป” หรือ “เพิ่มลงหน้าจอหลัก”");
+  }
+  function toastMsg(m){var t=document.getElementById("toast");if(!t)return;t.textContent=m;t.hidden=false;clearTimeout(toastMsg.t);toastMsg.t=setTimeout(function(){t.hidden=true},3200)}
+  window.hofInstall=doInstall;
+
+  window.addEventListener("beforeinstallprompt",function(e){e.preventDefault();deferred=e;if(!standalone&&!dismissed())setTimeout(showAndroid,2500)});
+  window.addEventListener("appinstalled",function(){deferred=null;hide("pwa-install");toastMsg("ติดตั้งแอปเรียบร้อย 🎉")});
+  if(isIOS&&!standalone&&!dismissed())setTimeout(function(){if(!document.getElementById("pwa-update"))showIOS(false)},3500);
+
+  /* ----- แจ้งอัปเดต ----- */
+  if(!("serviceWorker" in navigator))return;
+  var reloading=false;
+  navigator.serviceWorker.addEventListener("controllerchange",function(){if(reloading)return;reloading=true;location.reload()});
+  function showUpdate(w){
+    hide("pwa-install");
+    var d=bar("pwa-update",'<div class="tx"><b>🎉 มีเวอร์ชันใหม่แล้ว</b>อัปเดตเพื่อรับฟีเจอร์และการแก้ไขล่าสุด ข้อมูลของคุณจะไม่หาย</div><div class="bt"><button class="btn primary sm" id="pwa-up">อัปเดตเลย</button><button class="btn sm" id="pwa-upl">ภายหลัง</button></div>');
+    d.querySelector("#pwa-up").onclick=function(){this.textContent="กำลังอัปเดต…";w.postMessage("SKIP_WAITING")};
+    d.querySelector("#pwa-upl").onclick=function(){hide("pwa-update")};
+  }
+  window.addEventListener("load",function(){
+    navigator.serviceWorker.register("sw.js").then(function(reg){
+      if(reg.waiting&&navigator.serviceWorker.controller)showUpdate(reg.waiting);
+      reg.addEventListener("updatefound",function(){var n=reg.installing;if(!n)return;n.addEventListener("statechange",function(){if(n.state==="installed"&&navigator.serviceWorker.controller)showUpdate(n)})});
+      var check=function(){reg.update().catch(function(){})};
+      setInterval(check,30*60*1000);
+      document.addEventListener("visibilitychange",function(){if(!document.hidden)check()});
+      window.addEventListener("online",check);
+    }).catch(function(){});
+  });
+})();
+</script>
+</body>
+</html>

@@ -140,6 +140,28 @@ th,td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left}td.r,t
 .empty .big{font-size:2.4rem;display:block;margin-bottom:4px}
 .toast{position:fixed;left:50%;bottom:calc(88px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--navy);color:var(--bg);padding:10px 18px;border-radius:14px;font-weight:600;z-index:20;box-shadow:0 8px 24px rgba(0,0,0,.3);max-width:calc(100vw - 32px);text-align:center}
 #confetti{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:30}
+.back{border:0;background:none;color:var(--blue);font:600 .9rem var(--body);padding:4px 0 8px;cursor:pointer}
+.grp{margin:14px 0 6px;font-weight:600}
+.mrow{display:flex;gap:12px;align-items:center;width:100%;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:12px 14px;color:var(--fg);font:inherit;cursor:pointer;box-shadow:var(--shadow)}
+.mrow .mi{width:42px;height:42px;border-radius:14px;background:var(--kbg);color:var(--kfg);display:grid;place-items:center;font-size:1.3rem;flex:none}
+.mrow .mt{flex:1;min-width:0}.mrow .mt b{display:block;color:var(--navy)}.mrow small{display:block;color:var(--muted);font-size:.78rem}
+.chev{color:var(--muted);font-size:1.4rem;line-height:1;flex:none;transition:transform .15s}.chev.up{transform:rotate(90deg)}
+.between{display:flex;gap:12px;align-items:center;justify-content:space-between}
+.bignum{font:700 1.8rem var(--display);color:var(--navy);font-variant-numeric:tabular-nums}
+.mix{display:flex;height:10px;border-radius:99px;overflow:hidden;gap:2px;margin-top:10px}.mix i{background:var(--kfg);min-width:4px}
+.card.crow{padding:0}.crow.off .ct,.crow.off .ce{opacity:.5}
+.chead{display:flex;align-items:center;gap:10px;padding:10px 12px}
+.cmain{flex:1;min-width:0;display:flex;gap:10px;align-items:center;background:none;border:0;text-align:left;color:inherit;font:inherit;cursor:pointer;padding:0}
+.ce{width:38px;height:38px;border-radius:12px;background:var(--soft);display:grid;place-items:center;font-size:1.25rem;flex:none}
+.ct{min-width:0;flex:1}.ct b{display:block;color:var(--navy);font-size:.92rem}.ct small{display:block;color:var(--muted);font-size:.76rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cedit{padding:12px;border-top:1px dashed var(--line)}
+.btn:disabled{opacity:.45;cursor:default}
+.sw{position:relative;display:inline-block;width:46px;height:26px;margin:0;flex:none}
+.sw input{appearance:none;-webkit-appearance:none;width:46px;height:26px;margin:0;padding:0;border:0;border-radius:99px;background:var(--line);cursor:pointer;transition:.15s;position:relative}
+.sw input::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:.15s}
+.sw input:checked{background:var(--ok)}.sw input:checked::after{transform:translateX(20px)}
+.bnav button{position:relative}
+.bnav .dot{position:absolute;top:3px;left:calc(50% + 10px);width:11px;height:11px;border-radius:50%;background:var(--pink);border:2px solid var(--surface)}
 @media(prefers-reduced-motion:reduce){*{transition:none!important}}
 
 /* ---- PWA banners ---- */
@@ -207,7 +229,7 @@ function save(){const j=JSON.stringify(S);memStore=j;try{localStorage.setItem(KE
 function toast(m){const t=$("#toast");t.textContent=m;t.hidden=false;clearTimeout(toast.t);toast.t=setTimeout(()=>t.hidden=true,2600)}
 
 let tab=(location.hash||"#hall").slice(1);if(!TABS.some(t=>t[0]===tab))tab="hall";
-const ui={sub:{hall:"now",teachers:"list",rules:"pass"},tid:null,year:null,cat:null,hq:"",hy:"all",q:"",draft:{},note:""};
+const ui={sub:{hall:"now",teachers:"list",rules:"menu"},ec:null,addc:false,tid:null,year:null,cat:null,hq:"",hy:"all",q:"",draft:{},note:""};
 
 const teacher=id=>S.teachers.find(t=>t.id===id);
 const initials=n=>{const p=n.replace(/^(ครู|อาจารย์|นาย|นางสาว|นาง)\s*/,"").trim();return p?[...p][0]:"?"};
@@ -238,8 +260,11 @@ function confetti(){
     if(++f<110)requestAnimationFrame(step);else{cx.clearRect(0,0,cv.width,cv.height);cv.hidden=true}})();
 }
 
+function renderTabs(){
+  const up=window.hofUpd&&window.hofUpd.available;
+  $("#tabs").innerHTML=TABS.map(([k,l,i])=>`<button role="tab" aria-selected="${k===tab}" data-tab="${k}"><span class="ic emo">${i}</span>${k==="rules"&&up?'<i class="dot" title="มีเวอร์ชันใหม่"></i>':""}<span>${l}</span></button>`).join("")}
 function render(){
-  $("#tabs").innerHTML=TABS.map(([k,l,i])=>`<button role="tab" aria-selected="${k===tab}" data-tab="${k}"><span class="ic emo">${i}</span><span>${l}</span></button>`).join("");
+  renderTabs();
   $("#yearchip").innerHTML=`<span>ปีการศึกษา</span><b>${curYear()}</b>`;
   $("#demo").innerHTML=S.demo?`<div class="notice"><span class="emo">🎈</span><span>ตอนนี้เป็นข้อมูลตัวอย่าง พร้อมใช้งานจริงเมื่อไหร่ กดล้างได้เลย</span><button class="btn sm primary" data-act="clear-demo">ล้างข้อมูลตัวอย่าง</button></div>`:"";
   ({eval:vEval,hall:vHall,teachers:vTeachers,rules:vRules})[tab]();
@@ -338,33 +363,69 @@ function vTeachers(){
   $("#view").innerHTML=`<h2>👩‍🏫 คุณครูของเรา</h2>${seg("teachers",[["list",`📋 รายชื่อ (${S.teachers.length})`],["add","➕ เพิ่มครู"]])}${body}`;
 }
 
-/* ---------- ตั้งค่า ---------- */
+/* ---------- ตั้งค่า (เมนูหลัก → หน้าย่อยทีละเรื่อง) ---------- */
+const RS={pass:["🎯","เกณฑ์ผ่านและปีการศึกษา","k1"],crit:["📝","หัวข้อประเมิน","k0"],cat:["🏅","หมวดรางวัล","k2"],dept:["🏫","กลุ่มสาระ","k3"],data:["💾","สำรองและนำเข้าข้อมูล","k4"],about:["🔄","อัปเดตและติดตั้งแอป","k1"]};
 function vRules(){
-  const tot=activeCrit().reduce((a,c)=>a+c.max,0),k=ui.sub.rules;let body="";
-  if(k==="pass")body=`<div class="card stack"><h3>🎯 คะแนนผ่านเข้าทำเนียบ</h3><p class="muted small" style="margin:0">ครูที่ได้คะแนนร้อยละเท่านี้หรือมากกว่า จะได้ขึ้นทำเนียบ</p>
+  const k=ui.sub.rules;
+  if(k==="menu"||!RS[k])return vRulesMenu();
+  $("#view").innerHTML=`<button class="back" data-back>‹ ตั้งค่า</button><h2>${RS[k][0]} ${RS[k][1]}</h2>${({pass:sPass,crit:sCrit,cat:sCat,dept:sDept,data:sData,about:sAbout})[k]()}`;
+}
+function vRulesMenu(){
+  const ac=activeCrit(),tot=ac.reduce((a,c)=>a+c.max,0),U=window.hofUpd||{};
+  const sum={pass:`ผ่านร้อยละ ${fmt(S.pass)} · ปีการศึกษา ${curYear()}`,crit:`ใช้งาน ${ac.length}/${S.criteria.length} หัวข้อ · เต็มรวม ${fmt(tot)}`,cat:`${S.categories.length} หมวด`,dept:`${S.departments.length} กลุ่มสาระ`,data:"สำรอง นำเข้า ล้างข้อมูล",about:U.available?"มีเวอร์ชันใหม่ กดเพื่ออัปเดต":"ตรวจสอบอัปเดต แจ้งเตือน ติดตั้งแอป"};
+  const row=k=>`<button class="mrow ${RS[k][2]}" data-open="${k}"><span class="mi emo">${RS[k][0]}</span><span class="mt"><b>${RS[k][1]}</b><small>${esc(sum[k])}</small></span>${k==="about"&&U.available?'<span class="pill bad">ใหม่</span>':""}<span class="chev" aria-hidden="true">›</span></button>`;
+  $("#view").innerHTML=`<h2>⚙️ ตั้งค่า</h2><p class="muted small grp">การประเมิน</p><div class="list">${["pass","crit","cat","dept"].map(row).join("")}</div><p class="muted small grp">แอป</p><div class="list">${["data","about"].map(row).join("")}</div>`;
+}
+function sPass(){return `<div class="card stack"><p class="muted small" style="margin:0">ครูที่ได้คะแนนร้อยละเท่านี้หรือมากกว่า จะได้ขึ้นทำเนียบ</p>
     <div class="row"><div><label for="r-p">คะแนนผ่านขั้นต่ำ (ร้อยละ)</label><input id="r-p" type="number" min="0" max="100" step="1" value="${S.pass}"></div>
     <div><label for="r-y">📅 ปีการศึกษาปัจจุบัน</label><input id="r-y" type="number" min="2560" max="2700" value="${curYear()}"></div></div>
-    <p class="muted small" style="margin:0">ปีการศึกษาคำนวณให้อัตโนมัติ (เริ่มพฤษภาคม) ปรับเองได้ถ้าโรงเรียนใช้ช่วงเวลาอื่น ${S.curYear?`<button class="btn sm" data-act="auto-year" style="margin-left:6px">กลับไปอัตโนมัติ</button>`:""}</p></div>`;
-  if(k==="crit")body=`<p class="muted small" style="margin-top:0">คะแนนเต็มรวมของหัวข้อที่เปิดใช้ = <b>${fmt(tot)}</b> ระบบแปลงเป็นร้อยละเต็ม 100 ให้เอง และการแก้ไขมีผลกับการประเมินครั้งต่อไปเท่านั้น</p>
-    <div class="list">${S.criteria.map(c=>`<div class="card stack" data-crit="${c.id}">
-      <div class="row"><div style="flex:0 0 70px;min-width:70px"><label>ไอคอน</label><input data-f="e" value="${esc(c.e||"")}" maxlength="4" style="text-align:center;font-size:1.2rem"></div><div style="flex:3"><label>ชื่อหัวข้อ</label><input data-f="name" value="${esc(c.name)}"></div><div style="flex:1;min-width:90px"><label>คะแนนเต็ม</label><input data-f="max" type="number" min="1" value="${c.max}"></div></div>
+    <p class="muted small" style="margin:0">ปีการศึกษาคำนวณให้อัตโนมัติ (เริ่มพฤษภาคม) ปรับเองได้ถ้าโรงเรียนใช้ช่วงเวลาอื่น ${S.curYear?`<button class="btn sm" data-act="auto-year" style="margin-left:6px">กลับไปอัตโนมัติ</button>`:""}</p></div>`}
+
+function critSum(){
+  const ac=activeCrit(),tot=ac.reduce((a,c)=>a+c.max,0);
+  return `<div class="between"><div><div class="muted small">คะแนนเต็มรวม (หัวข้อที่เปิดใช้)</div><b class="bignum">${fmt(tot)}</b></div><div class="muted small" style="text-align:right">ใช้งาน ${ac.length}/${S.criteria.length} หัวข้อ</div></div>
+  ${tot?`<div class="mix" aria-hidden="true">${ac.map(c=>`<i class="${kc(c.name)}" style="flex:${c.max}" title="${esc(c.name)}"></i>`).join("")}</div>`:`<p class="muted small" style="margin:8px 0 0">ยังไม่มีหัวข้อที่เปิดใช้ เปิดสวิตช์อย่างน้อย 1 หัวข้อ</p>`}
+  <p class="muted small" style="margin:8px 0 0">รวมไม่ต้องเท่ากับ 100 ระบบแปลงเป็นร้อยละให้เอง การแก้ไขมีผลกับการประเมินครั้งต่อไปเท่านั้น</p>`}
+function critRow(c,i){
+  const open=ui.ec===c.id,n=S.criteria.length;
+  return `<div class="card crow ${c.active?"":"off"}" data-crit="${c.id}"><div class="chead">
+    <button class="cmain" data-act="ec" data-id="${c.id}" aria-expanded="${open}"><span class="ce emo">${esc(c.e||"✨")}</span><span class="ct"><b>${esc(c.name)}</b><small>เต็ม ${fmt(c.max)}${c.desc?" · "+esc(c.desc):""}</small></span><span class="chev ${open?"up":""}" aria-hidden="true">›</span></button>
+    <label class="sw"><input type="checkbox" data-f="active" ${c.active?"checked":""} aria-label="ใช้งานหัวข้อ ${esc(c.name)}"></label></div>
+    ${open?`<div class="cedit stack"><div class="row"><div style="flex:0 0 70px;min-width:70px"><label>ไอคอน</label><input data-f="e" value="${esc(c.e||"")}" maxlength="4" style="text-align:center;font-size:1.2rem"></div><div style="flex:1;min-width:90px"><label>คะแนนเต็ม</label><input data-f="max" type="number" min="1" value="${c.max}"></div></div>
+      <div><label>ชื่อหัวข้อ</label><input data-f="name" value="${esc(c.name)}"></div>
       <div><label>คำอธิบาย</label><input data-f="desc" value="${esc(c.desc||"")}"></div>
-      <div class="actions" style="justify-content:space-between"><label style="display:flex;gap:6px;align-items:center;margin:0"><input type="checkbox" data-f="active" ${c.active?"checked":""}> ใช้งานหัวข้อนี้</label><button class="btn danger sm" data-confirm="del-crit" data-id="${c.id}">🗑️ ลบ</button></div></div>`).join("")}</div>
-    <form id="add-c" class="card stack" style="margin-top:12px"><h3>➕ เพิ่มหัวข้อใหม่</h3>
-      <div class="row"><div style="flex:3"><label for="c-n">ชื่อหัวข้อ</label><input id="c-n" required></div><div style="flex:1;min-width:90px"><label for="c-m">คะแนนเต็ม</label><input id="c-m" type="number" min="1" value="10"></div></div>
-      <div><label for="c-d">คำอธิบาย</label><input id="c-d"></div><div><button class="btn primary">เพิ่มหัวข้อ</button></div></form>`;
-  if(k==="cat")body=`<div class="card"><h3>🏅 หมวดหมู่รางวัล</h3><div class="chips">${S.categories.map((c,i)=>`<span class="chip ${kc(c)}">${catEmoji(c)} ${esc(c)}<button aria-label="ลบ ${esc(c)}" data-act="del-cat" data-i="${i}">×</button></span>`).join("")||'<span class="muted">ยังไม่มีหมวดหมู่</span>'}</div>
-    <form id="add-cat" class="row"><input id="k-n" placeholder="ชื่อหมวดรางวัลใหม่" aria-label="ชื่อหมวดรางวัลใหม่" style="flex:3" required><button class="btn primary" style="flex:1">เพิ่ม</button></form></div>`;
-  if(k==="dept")body=`<div class="card"><h3>🏫 กลุ่มสาระการเรียนรู้</h3><label for="r-d">หนึ่งบรรทัดต่อหนึ่งกลุ่มสาระ</label><textarea id="r-d" rows="7">${esc(S.departments.join("\n"))}</textarea><p class="muted small" style="margin-bottom:0">บันทึกอัตโนมัติเมื่อแก้เสร็จ</p></div>`;
-  if(k==="data")body=`${window.hofInstall?`<div class="card stack" style="margin-bottom:12px"><h3>📲 ติดตั้งแอปลงหน้าจอโฮม</h3><p class="muted small" style="margin:0">เปิดได้เหมือนแอปทั่วไป ใช้งานออฟไลน์ได้ และอัปเดตให้อัตโนมัติ</p><div><button class="btn primary" data-act="install">📲 ติดตั้งแอป</button></div></div>`:""}<div class="card stack"><h3>💾 สำรองข้อมูล</h3><p class="muted small" style="margin:0">ข้อมูลเก็บไว้ในเครื่องนี้เท่านั้น แนะนำให้สำรองไว้เป็นระยะ หรือใช้ย้ายไปเครื่องอื่น</p>
+      <div class="actions" style="justify-content:space-between"><span class="actions"><button class="btn sm" data-act="mv" data-id="${c.id}" data-d="-1" ${i===0?"disabled":""} aria-label="เลื่อนขึ้น">▲ ขึ้น</button><button class="btn sm" data-act="mv" data-id="${c.id}" data-d="1" ${i===n-1?"disabled":""} aria-label="เลื่อนลง">▼ ลง</button></span><button class="btn danger sm" data-confirm="del-crit" data-id="${c.id}">🗑️ ลบ</button></div>
+      <p class="muted small" style="margin:0">บันทึกให้อัตโนมัติ ลำดับในรายการคือลำดับในหน้าให้คะแนน</p></div>`:""}</div>`}
+function sCrit(){
+  return `<div class="card" id="csum">${critSum()}</div>
+  <div class="list" style="margin-top:12px">${S.criteria.map(critRow).join("")||'<div class="empty"><span class="big emo">📝</span>ยังไม่มีหัวข้อประเมิน</div>'}</div>
+  ${ui.addc?`<form id="add-c" class="card stack" style="margin-top:12px"><h3>➕ เพิ่มหัวข้อใหม่</h3>
+    <div class="row"><div style="flex:3"><label for="c-n">ชื่อหัวข้อ</label><input id="c-n" required></div><div style="flex:1;min-width:90px"><label for="c-m">คะแนนเต็ม</label><input id="c-m" type="number" min="1" value="10"></div></div>
+    <div><label for="c-d">คำอธิบาย (ไม่บังคับ)</label><input id="c-d"></div><div class="actions"><button class="btn primary">เพิ่มหัวข้อ</button><button type="button" class="btn" data-act="hide-addc">ยกเลิก</button></div></form>`:`<button class="btn primary" style="margin-top:12px;width:100%" data-act="show-addc">➕ เพิ่มหัวข้อใหม่</button>`}`}
+function updCrit(row,c){
+  const ce=row.querySelector(".ce"),b=row.querySelector(".ct b"),s=row.querySelector(".ct small"),sm=$("#csum");
+  if(ce)ce.textContent=c.e||"✨";if(b)b.textContent=c.name;if(s)s.textContent=`เต็ม ${fmt(c.max)}${c.desc?" · "+c.desc:""}`;if(sm)sm.innerHTML=critSum()}
+function sCat(){return `<div class="card"><div class="chips">${S.categories.map((c,i)=>`<span class="chip ${kc(c)}">${catEmoji(c)} ${esc(c)}<button aria-label="ลบ ${esc(c)}" data-act="del-cat" data-i="${i}">×</button></span>`).join("")||'<span class="muted">ยังไม่มีหมวดหมู่</span>'}</div>
+    <form id="add-cat" class="row"><input id="k-n" placeholder="ชื่อหมวดรางวัลใหม่" aria-label="ชื่อหมวดรางวัลใหม่" style="flex:3" required><button class="btn primary" style="flex:1">เพิ่ม</button></form></div>`}
+function sDept(){return `<div class="card"><label for="r-d">หนึ่งบรรทัดต่อหนึ่งกลุ่มสาระ</label><textarea id="r-d" rows="7">${esc(S.departments.join("\n"))}</textarea><p class="muted small" style="margin-bottom:0">บันทึกอัตโนมัติเมื่อแก้เสร็จ</p></div>`}
+function sData(){return `<div class="card stack"><h3>💾 สำรองข้อมูล</h3><p class="muted small" style="margin:0">ข้อมูลเก็บไว้ในเครื่องนี้เท่านั้น แนะนำให้สำรองไว้เป็นระยะ หรือใช้ย้ายไปเครื่องอื่น</p>
     <div class="actions"><button class="btn primary" data-act="export-dl">⬇️ ดาวน์โหลดไฟล์สำรอง</button><button class="btn" data-act="export-copy">📋 คัดลอกข้อมูล</button></div></div>
     <div class="card stack" style="margin-top:12px"><h3>📥 นำเข้าข้อมูล</h3>
       <div><label for="imp-f">เลือกไฟล์สำรอง (.json)</label><input id="imp-f" type="file" accept=".json,application/json"></div>
       <div><label for="imp">หรือวางข้อมูลที่คัดลอกไว้</label><textarea id="imp" rows="4" placeholder="วางข้อมูลสำรองที่นี่"></textarea></div>
       <div><button class="btn danger" data-confirm="import">นำเข้า (แทนที่ข้อมูลปัจจุบัน)</button></div></div>
-    <div class="card stack" style="margin-top:12px"><h3>🧹 เริ่มใหม่</h3><p class="muted small" style="margin:0">ลบครู ผลประเมิน และการตั้งค่าทั้งหมดในเครื่องนี้</p><div><button class="btn danger" data-confirm="reset">ล้างข้อมูลทั้งหมด</button></div></div>`;
-  $("#view").innerHTML=`<h2>⚙️ ตั้งค่า</h2>${seg("rules",[["pass","🎯 เกณฑ์"],["crit","📝 หัวข้อ"],["cat","🏅 รางวัล"],["dept","🏫 กลุ่มสาระ"],["data","💾 ข้อมูล"]])}${body}`;
-}
+    <div class="card stack" style="margin-top:12px"><h3>🧹 เริ่มใหม่</h3><p class="muted small" style="margin:0">ลบครู ผลประเมิน และการตั้งค่าทั้งหมดในเครื่องนี้</p><div><button class="btn danger" data-confirm="reset">ล้างข้อมูลทั้งหมด</button></div></div>`}
+function sAbout(){
+  const U=window.hofUpd||{};
+  if(!U.ok)return `<div class="card"><p class="muted" style="margin:0">${esc(U.status||"การอัปเดตอัตโนมัติใช้ได้เมื่อเปิดผ่านเว็บ https เช่น GitHub Pages")}</p></div>`;
+  const st=U.available?"🎉 มีเวอร์ชันใหม่พร้อมอัปเดต":U.checking?"⏳ กำลังตรวจสอบ…":U.offline?"📴 ตรวจไม่ได้ (ออฟไลน์)":"✅ เป็นเวอร์ชันล่าสุด";
+  const last=U.last?new Date(U.last).toLocaleTimeString("th-TH",{hour:"2-digit",minute:"2-digit"}):"–";
+  const nt={unsupported:"เบราว์เซอร์นี้ไม่รองรับการแจ้งเตือน (iPhone จะเห็นแถบแจ้งในแอปทุกครั้งที่เปิด)",denied:"ถูกปิดกั้นไว้ เปิดได้ที่การตั้งค่าเว็บไซต์ของเบราว์เซอร์",granted:U.bg?"✅ เปิดอยู่ ตรวจเบื้องหลังได้แม้ปิดแอป":"✅ เปิดอยู่ จะแจ้งเมื่อเปิดแอปค้างไว้ (ตรวจเบื้องหลังต้องติดตั้งแอปบน Android Chrome)",default:"ยังไม่ได้เปิด"}[U.notif]||"";
+  return `<div class="card stack"><div><b>${st}</b><div class="muted small">รุ่น ${esc((U.build||"–").slice(0,6))} · ตรวจล่าสุด ${last}</div></div>
+    <div class="actions"><button class="btn" data-act="upd-check" ${U.checking?"disabled":""}>🔄 ตรวจสอบตอนนี้</button>${U.available?'<button class="btn primary" data-act="upd-apply">⬆️ อัปเดตเลย</button>':""}</div></div>
+  <div class="card stack" style="margin-top:12px"><div class="between"><div style="flex:1;min-width:0"><b>อัปเดตอัตโนมัติ</b><div class="muted small">ตรวจทุก 15 นาทีและทุกครั้งที่เปิดแอป เจอรุ่นใหม่จะอัปเดตให้เอง ถ้าคุณไม่ได้กำลังกรอกข้อมูลอยู่ (ข้อมูลที่บันทึกแล้วไม่หาย)</div></div><label class="sw"><input type="checkbox" id="u-auto" ${U.auto?"checked":""} aria-label="อัปเดตอัตโนมัติ"></label></div></div>
+  <div class="card stack" style="margin-top:12px"><b>🔔 แจ้งเตือนเมื่อมีเวอร์ชันใหม่</b><div class="muted small">${nt}</div>${U.notif==="default"?'<div><button class="btn primary" data-act="upd-notif">เปิดการแจ้งเตือน</button></div>':""}</div>
+  ${U.standalone?"":`<div class="card stack" style="margin-top:12px"><b>📲 ติดตั้งแอปลงหน้าจอโฮม</b><div class="muted small">เปิดได้เหมือนแอปทั่วไป ใช้ออฟไลน์ได้</div><div><button class="btn primary" data-act="install">📲 ติดตั้งแอป</button></div></div>`}`}
 
 /* ---------- events ---------- */
 function download(name,text){const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([text],{type:"application/json"}));a.download=name;document.body.appendChild(a);a.click();a.remove();toast("ถ้าไม่มีไฟล์ขึ้น ให้ใช้ปุ่ม “คัดลอกข้อมูล” แทน")}
@@ -373,7 +434,9 @@ function importData(txt){
     j.categories=j.categories||[];j.departments=j.departments||[];j.pass=j.pass??80;S=normalize(j);S.demo=false;save();render();toast("นำเข้าข้อมูลเรียบร้อย 🎉")}
   catch(e){toast("ข้อมูลไม่ถูกต้อง ลองใช้ไฟล์ที่สำรองจากแอปนี้")}}
 document.addEventListener("click",async e=>{
-  const tb=e.target.closest("[data-tab]");if(tb){tab=tb.dataset.tab;location.hash=tab;render();scrollTo(0,0);return}
+  const ob=e.target.closest("[data-open]");if(ob){ui.sub.rules=ob.dataset.open;ui.ec=null;ui.addc=false;history.pushState({rs:1},"");render();scrollTo(0,0);return}
+  if(e.target.closest("[data-back]")){if(history.state&&history.state.rs)history.back();else{ui.sub.rules="menu";render();scrollTo(0,0)}return}
+  const tb=e.target.closest("[data-tab]");if(tb){if(tb.dataset.tab==="rules"&&tab==="rules")ui.sub.rules="menu";tab=tb.dataset.tab;location.hash=tab;render();scrollTo(0,0);return}
   const sb=e.target.closest("[data-sub]");if(sb){const [k,v]=sb.dataset.sub.split(":");ui.sub[k]=v;render();return}
   const gt=e.target.closest("[data-goto]");if(gt){const [k,v]=gt.dataset.goto.split(":");tab=k;ui.sub[k]=v;location.hash=k;render();return}
   const cf=e.target.closest("[data-confirm]");
@@ -383,7 +446,7 @@ document.addEventListener("click",async e=>{
     if(k==="reset"){S={v:3,teachers:[],criteria:seed().criteria,categories:seed().categories,departments:seed().departments,pass:80,curYear:null,evals:[],demo:false};ui.tid=null;save();render();toast("ล้างข้อมูลทั้งหมดแล้ว");return}
     if(k==="del-eval")S.evals=S.evals.filter(x=>x.id!==id);
     if(k==="del-t"){S.teachers=S.teachers.filter(x=>x.id!==id);S.evals=S.evals.filter(x=>x.tid!==id)}
-    if(k==="del-crit")S.criteria=S.criteria.filter(x=>x.id!==id);
+    if(k==="del-crit"){S.criteria=S.criteria.filter(x=>x.id!==id);if(ui.ec===id)ui.ec=null}
     save();render();toast("ลบแล้ว");return}
   const a=e.target.closest("[data-act]");if(!a)return;const act=a.dataset.act;
   if(act==="clear-demo"){S.teachers=S.teachers.filter(t=>!t.demo);const ids=new Set(S.teachers.map(t=>t.id));S.evals=S.evals.filter(x=>ids.has(x.tid));S.demo=false;save();render();toast("ล้างข้อมูลตัวอย่างแล้ว เริ่มเลย! 🚀")}
@@ -397,6 +460,13 @@ document.addEventListener("click",async e=>{
   if(act==="edit-t"){const f=document.querySelector(`[data-edit="${a.dataset.id}"]`);f.hidden=!f.hidden}
   if(act==="del-cat"){S.categories.splice(+a.dataset.i,1);save();render()}
   if(act==="install"&&window.hofInstall)window.hofInstall();
+  if(act==="ec"){ui.ec=ui.ec===a.dataset.id?null:a.dataset.id;render()}
+  if(act==="mv"){const i=S.criteria.findIndex(x=>x.id===a.dataset.id),j=i+ +a.dataset.d;if(S.criteria[j]){[S.criteria[i],S.criteria[j]]=[S.criteria[j],S.criteria[i]];save();render()}}
+  if(act==="show-addc"){ui.addc=true;render();$("#c-n")?.focus()}
+  if(act==="hide-addc"){ui.addc=false;render()}
+  if(act==="upd-check"&&window.hofUpd)window.hofUpd.check();
+  if(act==="upd-apply"&&window.hofUpd)window.hofUpd.apply();
+  if(act==="upd-notif"&&window.hofUpd)window.hofUpd.enableNotif();
   if(act==="auto-year"){S.curYear=null;save();render()}
   if(act==="export-dl")download(`teacher-hall-of-fame-${new Date().toISOString().slice(0,10)}.json`,JSON.stringify(S));
   if(act==="export-copy"){const txt=JSON.stringify(S);try{await navigator.clipboard.writeText(txt);toast("คัดลอกข้อมูลแล้ว 📋")}catch(_){const ta=$("#imp");ta.value=txt;ta.select();toast("คัดลอกอัตโนมัติไม่ได้ ข้อมูลอยู่ในช่องด้านล่าง กดคัดลอกเองได้เลย")}}
@@ -419,10 +489,12 @@ document.addEventListener("change",async e=>{
   if(t.id==="r-d"){const d=t.value.split("\n").map(x=>x.trim()).filter(Boolean);if(d.length){S.departments=d;save();toast("บันทึกกลุ่มสาระแล้ว ✅")}}
   if(t.id==="imp-f"&&t.files[0]){$("#imp").value=await t.files[0].text();toast("อ่านไฟล์แล้ว กดนำเข้าได้เลย")}
   if(t.id==="a-p"){const p=$("#a-prev");if(t.files[0]){try{p.src=await readPhoto(t.files[0]);p.hidden=false}catch(_){toast("อ่านไฟล์รูปไม่ได้")}}else p.hidden=true}
+  if(t.id==="u-auto"&&window.hofUpd){window.hofUpd.setAuto(t.checked);toast(t.checked?"เปิดอัปเดตอัตโนมัติแล้ว ✅":"ปิดอัปเดตอัตโนมัติแล้ว จะแจ้งให้กดอัปเดตเอง")}
   const row=t.closest("[data-crit]");
   if(row&&t.dataset.f){const c=S.criteria.find(x=>x.id===row.dataset.crit),f=t.dataset.f;
-    if(f==="active")c.active=t.checked;else if(f==="max")c.max=Math.max(1,+t.value||1);else if(f==="name"){if(t.value.trim())c.name=t.value.trim()}else if(f==="e")c.e=t.value.trim()||"✨";else c.desc=t.value;
-    save();render();toast("บันทึกแล้ว ✅")}
+    if(f==="active"){c.active=t.checked;save();render();return}
+    if(f==="max")c.max=Math.max(1,+t.value||1);else if(f==="name"){if(t.value.trim())c.name=t.value.trim();else t.value=c.name}else if(f==="e")c.e=t.value.trim()||"✨";else c.desc=t.value;
+    save();updCrit(row,c)}
 });
 document.addEventListener("submit",async e=>{
   e.preventDefault();const f=e.target;
@@ -432,26 +504,38 @@ document.addEventListener("submit",async e=>{
   if(f.dataset.edit){const t=teacher(f.dataset.edit);t.name=f.n.value.trim()||t.name;t.dept=f.d.value;
     if(f.p.files[0]){try{t.photo=await readPhoto(f.p.files[0])}catch(_){return toast("อ่านไฟล์รูปไม่ได้")}}else if(f.r&&f.r.checked)t.photo="";
     save();render();toast("บันทึกการแก้ไขแล้ว ✅")}
-  if(f.id==="add-c"){S.criteria.push({id:uid(),name:$("#c-n").value.trim(),max:Math.max(1,+$("#c-m").value||10),desc:$("#c-d").value.trim(),active:true,e:"✨"});save();render();toast("เพิ่มหัวข้อแล้ว ✅")}
+  if(f.id==="add-c"){const id=uid();S.criteria.push({id,name:$("#c-n").value.trim(),max:Math.max(1,+$("#c-m").value||10),desc:$("#c-d").value.trim(),active:true,e:"✨"});ui.addc=false;ui.ec=id;save();render();toast("เพิ่มหัวข้อแล้ว แก้ไอคอนได้ด้านล่าง ✅")}
   if(f.id==="add-cat"){const n=$("#k-n").value.trim();if(n&&!S.categories.includes(n)){S.categories.push(n);save();render()}}
 });
+addEventListener("popstate",()=>{if(tab==="rules"&&ui.sub.rules!=="menu"){ui.sub.rules="menu";ui.ec=null;render();scrollTo(0,0)}});
+document.addEventListener("hof-upd",()=>{renderTabs();if(tab==="rules"&&(ui.sub.rules==="menu"||ui.sub.rules==="about")){const y=scrollY;vRules();scrollTo(0,y)}});
+window.hofApp={busy:()=>Object.values(ui.draft).some(v=>v!==""&&v!=null)||!!ui.note.trim()||!!($("#a-n")&&$("#a-n").value)||!!($("#imp")&&$("#imp").value)||!!($("#c-n")&&$("#c-n").value)};
 addEventListener("hashchange",()=>{const h=location.hash.slice(1);if(TABS.some(t=>t[0]===h)&&h!==tab){tab=h;render()}});
 render();
 </script>
 <script>
-/* PWA: ติดตั้งลงหน้าจอโฮม + แจ้งอัปเดตอัตโนมัติ */
+/* PWA: ติดตั้งลงหน้าจอโฮม + อัปเดตอัตโนมัติ + แจ้งเตือน
+   ตรวจเจอรุ่นใหม่เองโดยเทียบไฟล์ index.html (ไม่ต้องแก้เลขเวอร์ชัน) และดูสถานะ service worker ควบคู่ */
 (function(){
-  if(!/^https?:$/.test(location.protocol)||window.top!==window)return;
-  var DKEY="hof-install-dismissed",ICON="icon-192.png";
+  var H=window.hofUpd={ok:false,available:false,checking:false,offline:false,last:0,build:"",auto:true,notif:"unsupported",bg:false,status:"",standalone:false};
   function safe(f,d){try{return f()}catch(e){return d}}
-  var standalone=matchMedia("(display-mode: standalone)").matches||navigator.standalone===true;
-  var isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
-  var deferred=null;
+  function emit(){document.dispatchEvent(new Event("hof-upd"))}
+  var standalone=matchMedia("(display-mode: standalone)").matches||navigator.standalone===true;H.standalone=standalone;
+  H.auto=safe(function(){return localStorage.getItem("hof-auto")},"1")!=="0";
+  H.notif="Notification" in window?Notification.permission:"unsupported";
+  H.setAuto=function(v){H.auto=!!v;safe(function(){localStorage.setItem("hof-auto",v?"1":"0")});emit()};
+  if(!/^https?:$/.test(location.protocol)||window.top!==window){H.status="การอัปเดตอัตโนมัติและการติดตั้งใช้ได้เมื่อเปิดผ่านเว็บ https เช่น GitHub Pages";return}
+  if(!("serviceWorker" in navigator)){H.status="เบราว์เซอร์นี้ไม่รองรับการอัปเดตอัตโนมัติ";return}
+  H.ok=true;
 
+  var DKEY="hof-install-dismissed",ICON="icon-192.png",isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform==="MacIntel"&&navigator.maxTouchPoints>1);
+  var deferred=null,reg=null,reloading=false,hadCtl=!!navigator.serviceWorker.controller,timer=null;
   function bar(id,html){var old=document.getElementById(id);if(old)old.remove();
     var d=document.createElement("div");d.className="pwa-bar";d.id=id;d.innerHTML='<div class="pwa-card" role="dialog" aria-live="polite"><img src="'+ICON+'" alt="">'+html+'</div>';document.body.appendChild(d);return d}
   function hide(id){var e=document.getElementById(id);if(e)e.remove()}
   function dismissed(){var t=+safe(function(){return localStorage.getItem(DKEY)},0);return t&&Date.now()-t<7*864e5}
+  function toastMsg(m){var t=document.getElementById("toast");if(!t)return;t.textContent=m;t.hidden=false;clearTimeout(toastMsg.t);toastMsg.t=setTimeout(function(){t.hidden=true},3200)}
+  function busy(){return !!(window.hofApp&&window.hofApp.busy())}
 
   /* ----- ติดตั้งแอป ----- */
   function showAndroid(){
@@ -465,36 +549,90 @@ render();
   }
   function doInstall(){
     if(deferred){deferred.prompt();return deferred.userChoice.then(function(){deferred=null;hide("pwa-install")}).catch(function(){})}
-    if(standalone){return toastMsg("ติดตั้งแอปไว้แล้ว 🎉")}
-    if(isIOS){return showIOS(true)}
+    if(standalone)return toastMsg("ติดตั้งแอปไว้แล้ว 🎉");
+    if(isIOS)return showIOS(true);
     toastMsg("เปิดเมนูเบราว์เซอร์ แล้วเลือก “ติดตั้งแอป” หรือ “เพิ่มลงหน้าจอหลัก”");
   }
-  function toastMsg(m){var t=document.getElementById("toast");if(!t)return;t.textContent=m;t.hidden=false;clearTimeout(toastMsg.t);toastMsg.t=setTimeout(function(){t.hidden=true},3200)}
   window.hofInstall=doInstall;
-
-  window.addEventListener("beforeinstallprompt",function(e){e.preventDefault();deferred=e;if(!standalone&&!dismissed())setTimeout(showAndroid,2500)});
+  window.addEventListener("beforeinstallprompt",function(e){e.preventDefault();deferred=e;if(!standalone&&!dismissed()&&!H.available)setTimeout(showAndroid,2500)});
   window.addEventListener("appinstalled",function(){deferred=null;hide("pwa-install");toastMsg("ติดตั้งแอปเรียบร้อย 🎉")});
   if(isIOS&&!standalone&&!dismissed())setTimeout(function(){if(!document.getElementById("pwa-update"))showIOS(false)},3500);
 
-  /* ----- แจ้งอัปเดต ----- */
-  if(!("serviceWorker" in navigator))return;
-  var reloading=false;
-  navigator.serviceWorker.addEventListener("controllerchange",function(){if(reloading)return;reloading=true;location.reload()});
-  function showUpdate(w){
-    hide("pwa-install");
-    var d=bar("pwa-update",'<div class="tx"><b>🎉 มีเวอร์ชันใหม่แล้ว</b>อัปเดตเพื่อรับฟีเจอร์และการแก้ไขล่าสุด ข้อมูลของคุณจะไม่หาย</div><div class="bt"><button class="btn primary sm" id="pwa-up">อัปเดตเลย</button><button class="btn sm" id="pwa-upl">ภายหลัง</button></div>');
-    d.querySelector("#pwa-up").onclick=function(){this.textContent="กำลังอัปเดต…";w.postMessage("SKIP_WAITING")};
+  /* ----- ตรวจรุ่นใหม่ ----- */
+  function hs(s){var h=2166136261;for(var i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return (h>>>0).toString(36)}
+  function fetchBuild(){return fetch("index.html",{cache:"no-store"}).then(function(r){if(!r.ok)throw 0;return r.text()}).then(hs)}
+  function baseline(){ // รุ่นที่กำลังใช้อยู่ = ไฟล์ที่ service worker เก็บไว้ตอนเปิดหน้านี้
+    var p=window.caches?caches.match("index.html",{ignoreSearch:true}).then(function(r){return r?r.text():null}).catch(function(){return null}):Promise.resolve(null);
+    return p.then(function(t){return t?hs(t):fetchBuild()});
+  }
+  H.check=function(){
+    if(H.checking)return Promise.resolve();H.checking=true;H.offline=false;emit();
+    var jobs=[reg?reg.update().catch(function(){}):0,
+      fetchBuild().then(function(h){if(!H.build)H.build=h;else if(h!==H.build)found()})];
+    return Promise.all(jobs).catch(function(){H.offline=true}).then(function(){H.checking=false;H.last=Date.now();emit()});
+  };
+  H.apply=function(){
+    safe(function(){sessionStorage.setItem("hof-applied",Date.now())});
+    if(reg&&reg.waiting){reg.waiting.postMessage("SKIP_WAITING");setTimeout(function(){location.reload()},1500)}else location.reload();
+  };
+  function found(){
+    if(H.available)return;H.available=true;emit();
+    if(document.hidden){
+      if(H.notif==="granted")notifyLocal();
+      if(H.auto&&!busy()){H.apply();return}
+    }
+    showUpdate();
+  }
+  function showUpdate(){
+    hide("pwa-install");clearInterval(timer);
+    if(H.auto&&!busy())countdown(8);else manual(busy());
+  }
+  function manual(b){
+    var d=bar("pwa-update",'<div class="tx"><b>🎉 มีเวอร์ชันใหม่แล้ว</b>'+(b?'คุณกำลังกรอกข้อมูลอยู่ จึงยังไม่อัปเดตให้เอง กดอัปเดตเมื่อบันทึกเสร็จ':'อัปเดตเพื่อรับฟีเจอร์และการแก้ไขล่าสุด ข้อมูลที่บันทึกแล้วจะไม่หาย')+'</div><div class="bt"><button class="btn primary sm" id="pwa-up">อัปเดตเลย</button><button class="btn sm" id="pwa-upl">ภายหลัง</button></div>');
+    d.querySelector("#pwa-up").onclick=function(){this.textContent="กำลังอัปเดต…";H.apply()};
     d.querySelector("#pwa-upl").onclick=function(){hide("pwa-update")};
   }
+  function countdown(n){
+    var d=bar("pwa-update",'<div class="tx"><b>🎉 มีเวอร์ชันใหม่ กำลังอัปเดตอัตโนมัติ</b>อีก <span id="pwa-n">'+n+'</span> วินาที ข้อมูลที่บันทึกแล้วจะไม่หาย</div><div class="bt"><button class="btn primary sm" id="pwa-up">อัปเดตเลย</button><button class="btn sm" id="pwa-upl">ยกเลิก</button></div>');
+    var sp=d.querySelector("#pwa-n");
+    d.querySelector("#pwa-up").onclick=function(){clearInterval(timer);this.textContent="กำลังอัปเดต…";H.apply()};
+    d.querySelector("#pwa-upl").onclick=function(){clearInterval(timer);hide("pwa-update")};
+    timer=setInterval(function(){
+      if(busy()){clearInterval(timer);manual(true);return}
+      n--;if(n<=0){clearInterval(timer);H.apply();return}sp.textContent=n;
+    },1000);
+  }
+
+  /* ----- แจ้งเตือน ----- */
+  function notifyLocal(){if(reg&&reg.showNotification)reg.showNotification("ทำเนียบครูดีเด่น",{body:"มีเวอร์ชันใหม่ เปิดแอปเพื่ออัปเดต",icon:"icon-192.png",badge:"icon-192.png",tag:"hof-update"}).catch(function(){})}
+  function regPeriodic(){
+    if(!reg||!reg.periodicSync)return;
+    reg.periodicSync.register("hof-update",{minInterval:6*3600*1000}).then(function(){H.bg=true;emit()}).catch(function(){});
+  }
+  H.enableNotif=function(){
+    if(!("Notification" in window))return;
+    Notification.requestPermission().then(function(p){H.notif=p;if(p==="granted")regPeriodic();emit()});
+  };
+
+  /* ----- ลงทะเบียน service worker ----- */
+  navigator.serviceWorker.addEventListener("controllerchange",function(){
+    if(!hadCtl){hadCtl=true;return}   // ติดตั้งครั้งแรก ไม่ต้องรีโหลด
+    if(reloading)return;reloading=true;location.reload()});
   window.addEventListener("load",function(){
-    navigator.serviceWorker.register("sw.js").then(function(reg){
-      if(reg.waiting&&navigator.serviceWorker.controller)showUpdate(reg.waiting);
-      reg.addEventListener("updatefound",function(){var n=reg.installing;if(!n)return;n.addEventListener("statechange",function(){if(n.state==="installed"&&navigator.serviceWorker.controller)showUpdate(n)})});
-      var check=function(){reg.update().catch(function(){})};
-      setInterval(check,30*60*1000);
-      document.addEventListener("visibilitychange",function(){if(!document.hidden)check()});
-      window.addEventListener("online",check);
-    }).catch(function(){});
+    navigator.serviceWorker.register("sw.js").then(function(r){
+      reg=r;
+      if(H.notif==="granted")regPeriodic();
+      if(r.waiting&&navigator.serviceWorker.controller){
+        var recent=+safe(function(){return sessionStorage.getItem("hof-applied")},0);
+        H.available=true;emit();
+        if(H.auto&&!busy()&&Date.now()-recent>20000)H.apply();else showUpdate();
+      }
+      r.addEventListener("updatefound",function(){var n=r.installing;if(!n)return;n.addEventListener("statechange",function(){if(n.state==="installed"&&navigator.serviceWorker.controller)found()})});
+    }).catch(function(){H.ok=false;H.status="ลงทะเบียนระบบอัปเดตไม่สำเร็จ";emit()});
+    setTimeout(function(){baseline().then(function(h){H.build=h;emit();return H.check()}).catch(function(){})},1500);
+    setInterval(function(){H.check()},15*60*1000);
+    document.addEventListener("visibilitychange",function(){if(!document.hidden)H.check()});
+    window.addEventListener("online",function(){H.check()});
   });
 })();
 </script>
